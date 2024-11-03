@@ -16,7 +16,7 @@
             <div class="w-footer-a">
                 <ul class="list-unstyled">
                 <li class="color-a">
-                    <span class="color-text-a">Phone .</span> 0366461704
+                    <span class="color-text-a">Phone .</span> 0123456789
                 </li>
                 <li class="color-a">
                     <span class="color-text-a">Email .</span> hostayhotelgroup@gmail.com
