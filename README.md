@@ -63,6 +63,14 @@ Create a new database by importing `hostay_db.sql` located at `xampp\htdocs\host
 - Start the Apache and MySQL services
 
 ---
+### Code Construction
+
+The graph below shows the construction of the project's code:
+<div align="center">
+    <img src="demo/systemdiagrameng.png" width="500"/>
+</div>
+
+---
 ### Demo
 
 <div align="center">
