@@ -7,6 +7,7 @@ import { HttpError } from "./lib/http-error.js";
 import { sessionMiddleware } from "./lib/session.js";
 import { loadUser } from "./middleware/auth.js";
 import { csrfGuard } from "./middleware/csrf.js";
+import { normalizeUnicode } from "./middleware/normalize.js";
 import { adminRouter } from "./routes/admin/index.js";
 import { authRouter } from "./routes/auth.js";
 import { bookingsRouter } from "./routes/bookings.js";
@@ -28,6 +29,7 @@ app.use("/uploads", express.static(config.uploadDir, { fallthrough: false }));
 
 const api = express.Router();
 api.use(express.json({ limit: "100kb" }));
+api.use(normalizeUnicode);
 api.use(sessionMiddleware);
 // Chỉ route quản lý phòng được nhận multipart (upload ảnh)
 api.use(csrfGuard(["/admin/rooms"]));

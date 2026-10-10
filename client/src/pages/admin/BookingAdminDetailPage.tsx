@@ -1,159 +1,185 @@
-import { useEffect, useState, type FormEvent } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { useEffect, useState, type FormEvent, type ReactNode } from "react";
+import { Link, useParams } from "react-router-dom";
 import { api, formatDate } from "../../api/client";
-import { BookingStatus } from "../../components/BookingStatus";
-import { money, type AdminBooking, type CatalogItem } from "./adminApi";
+import { useAuth } from "../../auth/AuthContext";
+import type { AdminBooking, CatalogItem } from "./adminApi";
+import { Modal, PageCard, PageTitle } from "./ui";
 
+/** Chi tiết và xử lý đơn, chuyển từ admin/bill.php */
 export function BookingAdminDetailPage() {
   const { id } = useParams();
-  const navigate = useNavigate();
+  const { user } = useAuth();
   const [booking, setBooking] = useState<AdminBooking | null>(null);
   const [statuses, setStatuses] = useState<CatalogItem[]>([]);
-  const [message, setMessage] = useState<{ type: "success" | "danger"; text: string } | null>(null);
+  const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null);
+  const [form, setForm] = useState<{ statusId: number; isPaid: boolean } | null>(null);
+  const [confirmCancel, setConfirmCancel] = useState(false);
 
   useEffect(() => {
     api<AdminBooking>(`/admin/bookings/${id}`)
-      .then(setBooking)
-      .catch((e: Error) => setMessage({ type: "danger", text: e.message }));
+      .then((b) => {
+        setBooking(b);
+        setForm({ statusId: b.status?.id ?? 1, isPaid: b.isPaid });
+      })
+      .catch((e: Error) => setMessage({ ok: false, text: e.message }));
     api<CatalogItem[]>("/admin/bill-statuses").then(setStatuses).catch(() => setStatuses([]));
   }, [id]);
 
-  async function run(action: () => Promise<AdminBooking>, success: string) {
+  async function run(action: () => Promise<AdminBooking>, text: string) {
     try {
-      setBooking(await action());
-      setMessage({ type: "success", text: success });
+      const b = await action();
+      setBooking(b);
+      setForm({ statusId: b.status?.id ?? 1, isPaid: b.isPaid });
+      setMessage({ ok: true, text });
     } catch (e) {
-      setMessage({ type: "danger", text: (e as Error).message });
+      setMessage({ ok: false, text: (e as Error).message });
     }
   }
 
   function onUpdate(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    const form = new FormData(e.currentTarget);
-    const body = JSON.stringify({ statusId: Number(form.get("statusId")), isPaid: form.get("isPaid") === "true" });
-    run(() => api<AdminBooking>(`/admin/bookings/${id}`, { method: "PUT", body }), "Đã cập nhật đơn");
+    run(() => api<AdminBooking>(`/admin/bookings/${id}`, { method: "PUT", body: JSON.stringify(form) }), "Cập nhật thành công!");
   }
 
-  function onCancel() {
-    if (!window.confirm(`Hủy đơn #${id}?`)) return;
-    run(() => api<AdminBooking>(`/admin/bookings/${id}/cancel`, { method: "POST" }), "Đã hủy đơn");
-  }
-
-  async function onDelete() {
-    if (!window.confirm(`Xóa vĩnh viễn đơn #${id}? Thao tác này không thể hoàn tác.`)) return;
-    try {
-      await api(`/admin/bookings/${id}`, { method: "DELETE" });
-      navigate("/admin/bookings");
-    } catch (e) {
-      setMessage({ type: "danger", text: (e as Error).message });
-    }
-  }
-
-  if (!booking) return message ? <div className={`alert alert-${message.type}`}>{message.text}</div> : <p>Đang tải...</p>;
+  if (!booking || !form) return message ? <div className="alert alert-danger">{message.text}</div> : null;
   const b = booking;
+  // Nút cập nhật chỉ bật khi có thay đổi (giống bản cũ)
+  const changed = form.statusId !== (b.status?.id ?? 1) || form.isPaid !== b.isPaid;
+
+  const row = (label: string, value: ReactNode) => (
+    <div className="row mb-3">
+      <div className="col-md-3 fw-bold">{label}</div>
+      <div className="col-md-9">{value}</div>
+    </div>
+  );
 
   return (
     <>
-      <Link to="/admin/bookings" className="small">
-        <i className="bi bi-arrow-left" /> Danh sách đơn
-      </Link>
-      <div className="d-flex flex-wrap justify-content-between align-items-center gap-2 my-3">
-        <h1 className="h4 mb-0">
-          Đơn #{b.id} <BookingStatus booking={b} />
-        </h1>
-        <Link to={`/bookings/${b.id}`} className="btn btn-outline-secondary btn-sm">
-          <i className="bi bi-printer me-1" />
-          Phiếu xác nhận
-        </Link>
-      </div>
-      {message && <div className={`alert alert-${message.type}`}>{message.text}</div>}
+      <PageTitle title="Thông tin đơn đặt phòng" crumbs={[{ label: "Đơn đặt phòng", to: "/admin/bookings" }, { label: `Đơn #${b.id}` }]} />
+      <PageCard>
+        {message && <div className={`alert ${message.ok ? "alert-success" : "alert-danger"} mt-3`}>{message.text}</div>}
 
-      <div className="row g-4">
-        <div className="col-lg-7">
-          <div className="card">
-            <div className="card-body">
-              <dl className="row mb-0">
-                <dt className="col-sm-4">Khách hàng</dt>
-                <dd className="col-sm-8">{b.fullname}</dd>
-                <dt className="col-sm-4">Email / SĐT</dt>
-                <dd className="col-sm-8">
-                  {b.email} · {b.phone}
-                </dd>
-                <dt className="col-sm-4">Khách sạn</dt>
-                <dd className="col-sm-8">
-                  <Link to={`/rooms/${b.room.id}`}>{b.room.hotelName}</Link>
-                  <div className="small text-muted">
-                    {b.room.type?.name} · {b.room.address}
-                  </div>
-                </dd>
-                <dt className="col-sm-4">Lưu trú</dt>
-                <dd className="col-sm-8">
-                  {formatDate(b.startDate)} → {formatDate(b.endDate)} ({b.nights} đêm)
-                </dd>
-                <dt className="col-sm-4">Số phòng / khách</dt>
-                <dd className="col-sm-8">
-                  {b.numberRoom} phòng · {b.numberAdult} người lớn · {b.numberChildren} trẻ nhỏ
-                </dd>
-                <dt className="col-sm-4">Thành tiền</dt>
-                <dd className="col-sm-8 fw-semibold">
-                  {money(b.total)} <span className="small text-muted fw-normal">({money(b.room.price)} × {b.nights} đêm × {b.numberRoom} phòng)</span>
-                </dd>
-                <dt className="col-sm-4">Ngày đặt</dt>
-                <dd className="col-sm-8">{formatDate(b.createdAt)}</dd>
-                <dt className="col-sm-4">Nhân viên xử lý</dt>
-                <dd className="col-sm-8">{b.staffName ?? "—"}</dd>
-                {b.notes && (
-                  <>
-                    <dt className="col-sm-4">Ghi chú</dt>
-                    <dd className="col-sm-8" style={{ whiteSpace: "pre-wrap" }}>
-                      {b.notes}
-                    </dd>
-                  </>
-                )}
-              </dl>
-            </div>
+        <div className="row mt-3">
+          <div className="col-sm-12 mb-3 room-img-container">{b.room.image && <img src={b.room.image} className="room-img" alt={b.room.hotelName} />}</div>
+          <div className="col-md-6 row mb-3">
+            <div className="col-sm-12 fw-bold">Tên khách sạn</div>
+            <div className="col-sm-12">{b.room.hotelName}</div>
+          </div>
+          <div className="col-md-6 row mb-3">
+            <div className="col-sm-12 fw-bold">Loại phòng</div>
+            <div className="col-sm-12">{b.room.type?.name}</div>
+          </div>
+          <div className="col-sm-12 row mb-3">
+            <div className="col-sm-12 fw-bold">Địa chỉ</div>
+            <div className="col-sm-12">{b.room.address}</div>
+          </div>
+          <div className="col-sm-12 mb-3">
+            <Link to={`/rooms/${b.room.id}`}>Click để xem chi tiết.</Link>
           </div>
         </div>
 
-        <div className="col-lg-5">
-          <form className="card card-body mb-3" onSubmit={onUpdate} key={`${b.status?.id}-${b.isPaid}`}>
-            <h2 className="h6">Cập nhật xử lý</h2>
-            <label className="form-label small mb-1" htmlFor="statusId">
-              Trạng thái
-            </label>
-            <select id="statusId" name="statusId" className="form-select form-select-sm mb-2" defaultValue={b.status?.id ?? 1} disabled={b.cancelled}>
-              {statuses.map((s) => (
-                <option key={s.id} value={s.id}>
-                  {s.name}
-                </option>
-              ))}
-            </select>
-            <label className="form-label small mb-1" htmlFor="isPaid">
+        <div className="row mb-3">
+          <div className="col-md-12">
+            <Link to={`/bookings/${b.id}`}>Xem phiếu xác nhận.</Link>
+          </div>
+        </div>
+        {row("Họ và tên", b.fullname)}
+        {row("Email", b.email)}
+        {row("Số điện thoại", b.phone)}
+        {row("Số phòng", b.numberRoom)}
+        {row("Số người trưởng thành", b.numberAdult)}
+        {row("Số trẻ nhỏ", b.numberChildren)}
+        {row("Ngày tạo", formatDate(b.createdAt))}
+        {row("Ngày nhận phòng", formatDate(b.startDate))}
+        {row("Ngày trả phòng", formatDate(b.endDate))}
+        {row("Lợi nhuận ước tính", `${b.total.toFixed(2)}$`)}
+        <div className="row mb-3">
+          <div className="col-sm-12 fw-bold">Ghi chú</div>
+          <div className="col-sm-12" style={{ whiteSpace: "pre-wrap" }}>
+            {b.notes}
+          </div>
+        </div>
+
+        <form onSubmit={onUpdate}>
+          <div className="row mb-3">
+            <label className="col-md-3 fw-bold" htmlFor="slcPaid">
               Thanh toán
             </label>
-            <select id="isPaid" name="isPaid" className="form-select form-select-sm mb-3" defaultValue={String(b.isPaid)} disabled={b.cancelled}>
-              <option value="false">Chưa thanh toán</option>
-              <option value="true">Đã thanh toán</option>
-            </select>
-            <button className="btn btn-success btn-sm" disabled={b.cancelled}>
-              Lưu
-            </button>
-            {!b.staffName && <div className="form-text">Tên của bạn sẽ được ghi là nhân viên xử lý đơn này.</div>}
-          </form>
-
-          <div className="card card-body">
-            <h2 className="h6">Thao tác khác</h2>
-            <div className="d-flex gap-2">
-              <button className="btn btn-outline-warning btn-sm" onClick={onCancel} disabled={b.cancelled}>
-                Hủy đơn
-              </button>
-              <button className="btn btn-outline-danger btn-sm" onClick={onDelete}>
-                Xóa đơn
-              </button>
+            <div className="col-md-9">
+              <select
+                className="form-control"
+                id="slcPaid"
+                value={String(form.isPaid)}
+                disabled={b.cancelled}
+                onChange={(e) => setForm({ ...form, isPaid: e.target.value === "true" })}
+              >
+                <option value="false">Chưa thanh toán</option>
+                <option value="true">Đã thanh toán</option>
+              </select>
             </div>
           </div>
-        </div>
-      </div>
+          <div className="row mb-3">
+            <label className="col-md-3 fw-bold" htmlFor="slcSta">
+              Trạng thái
+            </label>
+            <div className="col-md-9">
+              <select
+                className="form-control"
+                id="slcSta"
+                value={form.statusId}
+                disabled={b.cancelled}
+                onChange={(e) => setForm({ ...form, statusId: Number(e.target.value) })}
+              >
+                {statuses.map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+          <div className="row mb-3">
+            <label className="col-md-3 fw-bold" htmlFor="staff">
+              Nhân viên xác nhận
+            </label>
+            <div className="col-md-9">
+              {/* Tự ghi tên nhân viên đang xử lý ở lần cập nhật đầu tiên */}
+              <input id="staff" className="form-control" value={b.staffName ?? `${user?.fullname ?? ""} (sẽ được ghi khi cập nhật)`} disabled />
+            </div>
+          </div>
+          <div className="mb-3 d-flex justify-content-center">
+            <button type="submit" className="btn btn-primary mx-3" disabled={!changed || b.cancelled}>
+              Cập nhật trạng thái
+            </button>
+            {!b.cancelled && (
+              <button type="button" className="btn btn-danger mx-3" onClick={() => setConfirmCancel(true)}>
+                Hủy đơn
+              </button>
+            )}
+          </div>
+          {b.cancelled && <p className="text-center text-danger">Đơn đặt phòng đã bị hủy.</p>}
+        </form>
+      </PageCard>
+
+      {confirmCancel && (
+        <Modal
+          title="Hủy đơn đặt phòng"
+          onClose={() => setConfirmCancel(false)}
+          footer={
+            <button
+              className="btn btn-danger"
+              onClick={() => {
+                setConfirmCancel(false);
+                run(() => api<AdminBooking>(`/admin/bookings/${id}/cancel`, { method: "POST" }), "Đã hủy đơn.");
+              }}
+            >
+              Hủy đơn
+            </button>
+          }
+        >
+          Bạn chắc chắn muốn hủy đơn #{b.id} của {b.fullname}?
+        </Modal>
+      )}
     </>
   );
 }

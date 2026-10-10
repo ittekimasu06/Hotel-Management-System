@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import { money } from "./adminApi";
 
 const MONTHS = ["T1", "T2", "T3", "T4", "T5", "T6", "T7", "T8", "T9", "T10", "T11", "T12"];
@@ -8,8 +8,8 @@ const BAR = "#2a78d6";
 const GRID = "#e4e3df";
 const TEXT_MUTED = "#6c757d";
 
-const W = 720;
-const H = 260;
+const DEFAULT_W = 720;
+const H = 320;
 const PAD = { top: 16, right: 12, bottom: 28, left: 56 };
 const BAR_MAX = 24;
 const RADIUS = 4;
@@ -31,6 +31,18 @@ function barPath(x: number, y: number, w: number, h: number) {
 export function RevenueChart({ year, values }: { year: number; values: number[] }) {
   const [hover, setHover] = useState<number | null>(null);
   const [showTable, setShowTable] = useState(false);
+  // Vẽ theo chiều rộng thật của khung để chữ giữ đúng cỡ 11px, không bị phóng to theo card
+  const boxRef = useRef<HTMLDivElement>(null);
+  const [W, setW] = useState(DEFAULT_W);
+  useLayoutEffect(() => {
+    const el = boxRef.current;
+    if (!el) return;
+    const update = () => setW(Math.max(320, Math.round(el.clientWidth)));
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [showTable]);
 
   const max = niceMax(Math.max(...values));
   const plotW = W - PAD.left - PAD.right;
@@ -43,8 +55,10 @@ export function RevenueChart({ year, values }: { year: number; values: number[] 
   return (
     <div className="card">
       <div className="card-body">
-        <div className="d-flex justify-content-between align-items-center mb-2">
-          <h2 className="h6 mb-0">Doanh thu theo tháng · {year}</h2>
+        <div className="d-flex justify-content-between align-items-center">
+          <h5 className="card-title">
+            Biểu đồ <span>| Doanh thu trong năm {year}</span>
+          </h5>
           <button className="btn btn-link btn-sm p-0" onClick={() => setShowTable((s) => !s)}>
             {showTable ? "Xem biểu đồ" : "Xem bảng"}
           </button>
@@ -69,8 +83,8 @@ export function RevenueChart({ year, values }: { year: number; values: number[] 
             </tbody>
           </table>
         ) : (
-          <div className="position-relative">
-            <svg viewBox={`0 0 ${W} ${H}`} className="w-100" role="img" aria-label={`Doanh thu theo tháng năm ${year}`}>
+          <div className="position-relative" ref={boxRef}>
+            <svg viewBox={`0 0 ${W} ${H}`} width={W} height={H} style={{ display: "block", maxWidth: "100%" }} role="img" aria-label={`Doanh thu theo tháng năm ${year}`}>
               {ticks.map((t) => (
                 <g key={t}>
                   <line x1={PAD.left} x2={W - PAD.right} y1={y(t)} y2={y(t)} stroke={GRID} strokeWidth={1} />

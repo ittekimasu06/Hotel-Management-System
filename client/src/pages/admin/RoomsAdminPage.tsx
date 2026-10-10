@@ -1,86 +1,154 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
+import DOMPurify from "dompurify";
 import { api, type Room } from "../../api/client";
 import { Pagination } from "../../components/Pagination";
-import { money, ROOM_STATUS } from "./adminApi";
 import { useAdminList } from "./useAdminList";
+import { actionButtons, DetailRow, Modal, PageCard, PageTitle } from "./ui";
 
+const STATUS: Record<number, { label: string; className: string }> = {
+  1: { label: "Còn phòng trống", className: "text-success" },
+  2: { label: "Hết phòng", className: "text-danger" },
+  3: { label: "Đang sửa chữa", className: "text-warning" },
+};
+
+function RoomStatus({ status }: { status: number | null }) {
+  const s = status != null ? STATUS[status] : undefined;
+  return s ? <span className={s.className}>{s.label}</span> : null;
+}
+
+/** Danh sách phòng, chuyển từ admin/rooms.php */
 export function RoomsAdminPage() {
-  const { data, error, setError, reload, params, setFilter, setPage } = useAdminList<Room>("/admin/rooms");
+  const { data, error, setError, reload, params, setPage } = useAdminList<Room>("/admin/rooms");
+  const [viewing, setViewing] = useState<Room | null>(null);
+  const [deleting, setDeleting] = useState<Room | null>(null);
 
   async function remove(room: Room) {
-    if (!window.confirm(`Xóa phòng #${room.id} - ${room.hotelName}?`)) return;
     try {
       await api(`/admin/rooms/${room.id}`, { method: "DELETE" });
       reload();
     } catch (e) {
       setError((e as Error).message);
+    } finally {
+      setDeleting(null);
     }
   }
 
   return (
     <>
-      <div className="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
-        <h1 className="h4 mb-0">Phòng</h1>
-        <Link to="/admin/rooms/new" className="btn btn-success btn-sm">
-          <i className="bi bi-plus-lg me-1" />
-          Thêm phòng
-        </Link>
-      </div>
-
-      <form
-        className="mb-3"
-        onSubmit={(e) => {
-          e.preventDefault();
-          setFilter("key", String(new FormData(e.currentTarget).get("key") ?? "").trim());
-        }}
-      >
-        <input name="key" className="form-control form-control-sm" placeholder="Tìm theo tên khách sạn hoặc địa chỉ" defaultValue={params.get("key") ?? ""} />
-      </form>
-
-      {error && <div className="alert alert-danger">{error}</div>}
-      {!data && !error && <p>Đang tải...</p>}
-
-      {data && (
-        <div className="table-responsive">
-          <table className="table table-sm align-middle">
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Ảnh</th>
-                <th>Khách sạn</th>
-                <th>Loại</th>
-                <th className="text-end">Giá</th>
-                <th>Trạng thái</th>
-                <th />
-              </tr>
-            </thead>
-            <tbody>
-              {data.items.map((r) => (
-                <tr key={r.id}>
-                  <td>{r.id}</td>
-                  <td>{r.image && <img src={r.image} alt="" width={64} height={40} style={{ objectFit: "cover" }} className="rounded" />}</td>
-                  <td>
-                    {r.hotelName}
-                    <div className="small text-muted">{r.address}</div>
-                  </td>
-                  <td>{r.type?.name}</td>
-                  <td className="text-end">{money(r.price)}</td>
-                  <td>{r.status != null ? ROOM_STATUS[r.status] ?? "—" : "—"}</td>
-                  <td className="text-end text-nowrap">
-                    <Link to={`/admin/rooms/${r.id}`} className="btn btn-outline-primary btn-sm me-1">
-                      Sửa
-                    </Link>
-                    <button className="btn btn-outline-danger btn-sm" onClick={() => remove(r)}>
-                      Xóa
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          {data.items.length === 0 && <p className="text-muted">Không có phòng nào.</p>}
-          <Pagination page={data.page} pageSize={data.pageSize} total={data.total} onChange={setPage} />
+      <PageTitle title="Danh sách" crumbs={[{ label: "Phòng" }]} />
+      <PageCard>
+        <div className="row my-3">
+          <div className="col-md-12">
+            <Link to="/admin/rooms/new" className="btn btn-primary">
+              <i className="bi bi-plus-circle" /> Thêm phòng
+            </Link>
+          </div>
         </div>
+        {params.get("key") && <p className="small text-muted">Kết quả tìm kiếm cho “{params.get("key")}”</p>}
+        {error && <div className="alert alert-danger">{error}</div>}
+        {data && (
+          <>
+            <table className="table table-striped table-sm">
+              <thead>
+                <tr>
+                  <th scope="col">ID</th>
+                  <th scope="col">Kiểu phòng</th>
+                  <th scope="col">Khách sạn</th>
+                  <th scope="col">Trạng thái</th>
+                  <th scope="col" colSpan={3}>
+                    Thực hiện
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {data.items.map((r) => (
+                  <tr key={r.id}>
+                    <th scope="row" className="align-middle">
+                      {r.id}
+                    </th>
+                    <td className="align-middle">{r.type?.name}</td>
+                    <td className="align-middle">{r.hotelName}</td>
+                    <td className="align-middle">
+                      <RoomStatus status={r.status} />
+                    </td>
+                    <td className="align-middle">
+                      <button className={actionButtons.view} onClick={() => setViewing(r)} aria-label="Xem">
+                        <i className="bi bi-eye" />
+                      </button>
+                    </td>
+                    <td className="align-middle">
+                      <Link className={actionButtons.edit} to={`/admin/rooms/${r.id}`} aria-label="Sửa">
+                        <i className="bi bi-pencil-square" />
+                      </Link>
+                    </td>
+                    <td className="align-middle">
+                      <button className={actionButtons.remove} onClick={() => setDeleting(r)} aria-label="Xóa">
+                        <i className="bi bi-trash" />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            {data.items.length === 0 && <p>Không có dữ liệu!</p>}
+            <Pagination page={data.page} pageSize={data.pageSize} total={data.total} onChange={setPage} />
+          </>
+        )}
+      </PageCard>
+
+      {viewing && (
+        <Modal title="Thông tin phòng" size="lg" onClose={() => setViewing(null)}>
+          {viewing.image && (
+            <div className="row">
+              <div className="col-sm-12 d-flex justify-content-center">
+                <img src={viewing.image} alt={viewing.hotelName} className="img-fluid rounded" />
+              </div>
+            </div>
+          )}
+          <DetailRow label="Tên khách sạn">{viewing.hotelName}</DetailRow>
+          <DetailRow label="Địa chỉ">{viewing.address}</DetailRow>
+          <DetailRow label="Loại phòng">{viewing.type?.name}</DetailRow>
+          <DetailRow label="Loại giường">{viewing.bedType}</DetailRow>
+          <DetailRow label="Số người">{viewing.numberPeople}</DetailRow>
+          <DetailRow label="Số giường">{viewing.numberBed}</DetailRow>
+          <DetailRow label="Đánh giá">
+            {viewing.quality} <i className="bi bi-star-fill text-warning" />
+          </DetailRow>
+          <DetailRow label="Giá">{viewing.price.toFixed(2)}</DetailRow>
+          <DetailRow label="Diện tích">
+            {viewing.area}m<sup>2</sup>
+          </DetailRow>
+          <DetailRow label="Trạng thái">
+            <RoomStatus status={viewing.status} />
+          </DetailRow>
+          <div className="row mt-3">
+            <div className="col-sm-12 fw-bold">Mô tả:</div>
+            <div className="col-sm-12" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(viewing.detail ?? "") }} />
+          </div>
+        </Modal>
+      )}
+
+      {deleting && (
+        <Modal
+          title="Xóa phòng"
+          onClose={() => setDeleting(null)}
+          footer={
+            <button className="btn btn-danger" onClick={() => remove(deleting)}>
+              Xóa
+            </button>
+          }
+        >
+          <p>Bạn có chắc chắn muốn xóa phòng này:</p>
+          <p>
+            <b>Khách sạn: </b>
+            {deleting.hotelName}
+          </p>
+          <p>
+            <b>Loại: </b>
+            {deleting.type?.name}
+          </p>
+        </Modal>
       )}
     </>
   );

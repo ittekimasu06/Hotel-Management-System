@@ -1,12 +1,29 @@
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { api } from "../../api/client";
 import type { CatalogItem } from "./adminApi";
+import { actionButtons, DetailRow, Modal, PageCard, PageTitle } from "./ui";
 
-/** Quản lý danh mục tên + ghi chú (loại phòng, trạng thái đơn), thêm/sửa ngay trên bảng */
-export function CatalogPage({ title, endpoint, itemLabel }: { title: string; endpoint: string; itemLabel: string }) {
+type Dialog = { kind: "view" | "edit" | "delete"; item: CatalogItem } | { kind: "add" } | null;
+
+/**
+ * Danh mục tên + ghi chú (loại phòng, trạng thái đơn), chuyển từ admin/roomtypes.php và billstatics.php:
+ * bảng với các nút xem/sửa/xóa mở popup, nút "Thêm" mở popup thêm mới.
+ */
+export function CatalogPage({
+  title,
+  section,
+  endpoint,
+  itemLabel,
+}: {
+  title: string;
+  section: string;
+  endpoint: string;
+  itemLabel: string;
+}) {
   const [items, setItems] = useState<CatalogItem[] | null>(null);
-  const [editing, setEditing] = useState<number | "new" | null>(null);
+  const [dialog, setDialog] = useState<Dialog>(null);
   const [error, setError] = useState<string | null>(null);
+  const [dialogError, setDialogError] = useState<string | null>(null);
 
   const reload = useCallback(() => {
     api<CatalogItem[]>(endpoint)
@@ -16,96 +33,150 @@ export function CatalogPage({ title, endpoint, itemLabel }: { title: string; end
 
   useEffect(reload, [reload]);
 
-  async function save(e: FormEvent<HTMLFormElement>, id: number | "new") {
+  const close = useCallback(() => {
+    setDialog(null);
+    setDialogError(null);
+  }, []);
+
+  async function save(e: FormEvent<HTMLFormElement>, id?: number) {
     e.preventDefault();
     const form = new FormData(e.currentTarget);
     const body = JSON.stringify({ name: String(form.get("name") ?? ""), notes: String(form.get("notes") ?? "") });
     try {
-      await api(id === "new" ? endpoint : `${endpoint}/${id}`, { method: id === "new" ? "POST" : "PUT", body });
-      setEditing(null);
-      setError(null);
+      await api(id ? `${endpoint}/${id}` : endpoint, { method: id ? "PUT" : "POST", body });
+      close();
       reload();
     } catch (err) {
-      setError((err as Error).message);
+      setDialogError((err as Error).message);
     }
   }
 
   async function remove(item: CatalogItem) {
-    if (!window.confirm(`Xóa ${itemLabel} "${item.name}"?`)) return;
     try {
       await api(`${endpoint}/${item.id}`, { method: "DELETE" });
-      setError(null);
+      close();
       reload();
     } catch (err) {
-      setError((err as Error).message);
+      setDialogError((err as Error).message);
     }
   }
 
-  const editRow = (id: number | "new", item?: CatalogItem) => (
-    <tr key={`edit-${id}`}>
-      <td colSpan={4}>
-        <form className="row g-2" onSubmit={(e) => save(e, id)}>
-          <div className="col-md-4">
-            <input name="name" className="form-control form-control-sm" placeholder="Tên" defaultValue={item?.name} required maxLength={45} autoFocus />
-          </div>
-          <div className="col-md-6">
-            <input name="notes" className="form-control form-control-sm" placeholder="Ghi chú" defaultValue={item?.notes ?? ""} maxLength={5000} />
-          </div>
-          <div className="col-md-2 d-flex gap-1">
-            <button className="btn btn-success btn-sm">Lưu</button>
-            <button type="button" className="btn btn-outline-secondary btn-sm" onClick={() => setEditing(null)}>
-              Hủy
-            </button>
-          </div>
-        </form>
-      </td>
-    </tr>
+  const formBody = (item?: CatalogItem) => (
+    <>
+      {dialogError && <div className="alert alert-danger py-2">{dialogError}</div>}
+      <div className="row mt-3">
+        <label className="col-sm-12 col-form-label fw-bold" htmlFor="c-name">
+          Tên {itemLabel}
+        </label>
+        <div className="col-sm-12">
+          <input type="text" className="form-control" id="c-name" name="name" defaultValue={item?.name} required maxLength={45} autoFocus />
+        </div>
+      </div>
+      <div className="row mt-3">
+        <label className="col-sm-12 col-form-label fw-bold" htmlFor="c-notes">
+          Ghi chú
+        </label>
+        <div className="col-sm-12">
+          <textarea className="form-control" id="c-notes" name="notes" rows={10} defaultValue={item?.notes ?? ""} maxLength={5000} />
+        </div>
+      </div>
+    </>
   );
 
   return (
     <>
-      <div className="d-flex justify-content-between align-items-center mb-3">
-        <h1 className="h4 mb-0">{title}</h1>
-        <button className="btn btn-success btn-sm" onClick={() => setEditing("new")} disabled={editing === "new"}>
-          <i className="bi bi-plus-lg me-1" />
-          Thêm
-        </button>
-      </div>
-      {error && <div className="alert alert-danger">{error}</div>}
-      {!items && !error && <p>Đang tải...</p>}
-      {items && (
-        <table className="table table-sm align-middle">
-          <thead>
-            <tr>
-              <th style={{ width: 60 }}>ID</th>
-              <th>Tên</th>
-              <th>Ghi chú</th>
-              <th />
-            </tr>
-          </thead>
-          <tbody>
-            {editing === "new" && editRow("new")}
-            {items.map((item) =>
-              editing === item.id ? (
-                editRow(item.id, item)
-              ) : (
+      <PageTitle title={title} crumbs={[{ label: section }]} />
+      <PageCard>
+        <div className="row my-3">
+          <div className="col-md-12">
+            <button className="btn btn-primary" onClick={() => setDialog({ kind: "add" })}>
+              <i className="bi bi-plus-circle" /> Thêm {itemLabel}
+            </button>
+          </div>
+        </div>
+        {error && <div className="alert alert-danger">{error}</div>}
+        {items && (
+          <table className="table table-striped table-sm">
+            <thead>
+              <tr>
+                <th scope="col">ID</th>
+                <th scope="col">Tên</th>
+                <th scope="col">Ghi chú</th>
+                <th scope="col" colSpan={3}>
+                  Thực hiện
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {items.map((item) => (
                 <tr key={item.id}>
-                  <td>{item.id}</td>
-                  <td>{item.name}</td>
-                  <td className="small text-muted">{item.notes}</td>
-                  <td className="text-end text-nowrap">
-                    <button className="btn btn-outline-primary btn-sm me-1" onClick={() => setEditing(item.id)}>
-                      Sửa
+                  <th scope="row" className="align-middle">
+                    {item.id}
+                  </th>
+                  <td className="align-middle">{item.name}</td>
+                  <td className="align-middle">{item.notes}</td>
+                  <td className="align-middle">
+                    <button className={actionButtons.view} onClick={() => setDialog({ kind: "view", item })} aria-label="Xem">
+                      <i className="bi bi-eye" />
                     </button>
-                    <button className="btn btn-outline-danger btn-sm" onClick={() => remove(item)}>
-                      Xóa
+                  </td>
+                  <td className="align-middle">
+                    <button className={actionButtons.edit} onClick={() => setDialog({ kind: "edit", item })} aria-label="Sửa">
+                      <i className="bi bi-pencil-square" />
+                    </button>
+                  </td>
+                  <td className="align-middle">
+                    <button className={actionButtons.remove} onClick={() => setDialog({ kind: "delete", item })} aria-label="Xóa">
+                      <i className="bi bi-trash" />
                     </button>
                   </td>
                 </tr>
-              ),
-            )}
-          </tbody>
-        </table>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </PageCard>
+
+      {dialog?.kind === "view" && (
+        <Modal title={`Thông tin ${itemLabel}`} onClose={close}>
+          <DetailRow label={`Tên ${itemLabel}`}>{dialog.item.name}</DetailRow>
+          <DetailRow label="Ghi chú">{dialog.item.notes}</DetailRow>
+        </Modal>
+      )}
+
+      {(dialog?.kind === "add" || dialog?.kind === "edit") && (
+        <form onSubmit={(e) => save(e, dialog.kind === "edit" ? dialog.item.id : undefined)}>
+          <Modal
+            title={dialog.kind === "add" ? `Thêm ${itemLabel}` : `Sửa ${itemLabel}`}
+            onClose={close}
+            footer={
+              <button type="submit" className="btn btn-primary">
+                {dialog.kind === "add" ? "Thêm mới" : "Lưu"}
+              </button>
+            }
+          >
+            {formBody(dialog.kind === "edit" ? dialog.item : undefined)}
+          </Modal>
+        </form>
+      )}
+
+      {dialog?.kind === "delete" && (
+        <Modal
+          title={`Xóa ${itemLabel}`}
+          onClose={close}
+          footer={
+            <button className="btn btn-danger" onClick={() => remove(dialog.item)}>
+              Xóa
+            </button>
+          }
+        >
+          {dialogError && <div className="alert alert-danger py-2">{dialogError}</div>}
+          <p>Bạn có chắc chắn muốn xóa {itemLabel} này:</p>
+          <p>
+            <b>Tên {itemLabel}: </b>
+            {dialog.item.name}
+          </p>
+        </Modal>
       )}
     </>
   );

@@ -1,34 +1,44 @@
-import { useEffect, useState, type ReactNode } from "react";
-import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
 import { api } from "../../api/client";
 import { money, type Dashboard, type Trend } from "./adminApi";
 import { RevenueChart } from "./RevenueChart";
+import { PageTitle } from "./ui";
 
-function TrendLine({ trend, period }: { trend: Trend; period: string }) {
-  if (trend.change === null) {
-    return <span className="small text-muted">Không có dữ liệu {period} để so sánh</span>;
+/** Thẻ thống kê kiểu NiceAdmin (info-card) */
+function InfoCard({ kind, title, period, icon, value, trend }: { kind: string; title: string; period: string; icon: string; value: string; trend: Trend }) {
+  let change = <span className="text-muted small pt-2 ps-1">Chưa có dữ liệu kỳ trước</span>;
+  if (trend.change !== null) {
+    const up = trend.change >= 0;
+    change = (
+      <>
+        <span className="text-muted small pt-2 ps-1">{up ? "Tăng" : "Giảm"}</span>{" "}
+        <span className={`text-${up ? "success" : "danger"} small pt-1 fw-bold`}>{Math.abs(trend.change).toFixed(2)}%</span>
+      </>
+    );
   }
-  const up = trend.change >= 0;
   return (
-    <span className="small text-muted">
-      <i className={`bi ${up ? "bi-arrow-up-right" : "bi-arrow-down-right"} me-1`} aria-hidden />
-      {up ? "Tăng" : "Giảm"} {Math.abs(trend.change).toFixed(1)}% so với {period}
-    </span>
-  );
-}
-
-function StatTile({ label, value, children }: { label: string; value: string; children?: ReactNode }) {
-  return (
-    <div className="card h-100">
-      <div className="card-body">
-        <div className="small text-muted">{label}</div>
-        <div className="fs-3 fw-semibold">{value}</div>
-        {children}
+    <div className="col-md-4">
+      <div className={`card info-card ${kind}`}>
+        <div className="card-body">
+          <h5 className="card-title">
+            {title} <span>| {period}</span>
+          </h5>
+          <div className="d-flex align-items-center">
+            <div className="card-icon rounded-circle d-flex align-items-center justify-content-center">
+              <i className={`bi ${icon}`} />
+            </div>
+            <div className="ps-3">
+              <h6>{value}</h6>
+              {change}
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
 }
 
+/** Dashboard, chuyển từ admin/index.php */
 export function AdminHomePage() {
   const [data, setData] = useState<Dashboard | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -39,44 +49,26 @@ export function AdminHomePage() {
       .catch((e: Error) => setError(e.message));
   }, []);
 
-  if (error) return <div className="alert alert-danger">{error}</div>;
-  if (!data) return <p>Đang tải...</p>;
-
   return (
     <>
-      <h1 className="h4 mb-3">Tổng quan</h1>
-      <div className="row g-3 mb-3">
-        <div className="col-sm-6 col-xl-4">
-          <StatTile label="Doanh thu tháng này" value={money(data.revenue.current)}>
-            <TrendLine trend={data.revenue} period="tháng trước" />
-          </StatTile>
-        </div>
-        <div className="col-sm-6 col-xl-4">
-          <StatTile label="Đơn đặt phòng tháng này" value={String(data.bookings.current)}>
-            <TrendLine trend={data.bookings} period="tháng trước" />
-          </StatTile>
-        </div>
-        <div className="col-sm-6 col-xl-4">
-          <StatTile label={`Người dùng mới năm ${data.year}`} value={String(data.users.current)}>
-            <TrendLine trend={data.users} period="năm trước" />
-          </StatTile>
-        </div>
-        <div className="col-sm-6 col-xl-6">
-          <StatTile label="Đơn chờ xử lý" value={String(data.pendingBookings)}>
-            <Link to="/admin/bookings?statusId=1&cancelled=false" className="small">
-              Xem danh sách
-            </Link>
-          </StatTile>
-        </div>
-        <div className="col-sm-6 col-xl-6">
-          <StatTile label="Liên hệ chưa xem" value={String(data.unseenContacts)}>
-            <Link to="/admin/contacts?seen=false" className="small">
-              Xem danh sách
-            </Link>
-          </StatTile>
-        </div>
-      </div>
-      <RevenueChart year={data.year} values={data.revenueByMonth} />
+      <PageTitle title="Dashboard" crumbs={[{ label: "Thống kê" }]} />
+      {error && <div className="alert alert-danger">{error}</div>}
+      {data && (
+        <section className="section dashboard">
+          <div className="row">
+            <div className="col-lg-12">
+              <div className="row">
+                <InfoCard kind="customers-card" title="Người dùng" period="Trong năm" icon="bi-people" value={String(data.users.current)} trend={data.users} />
+                <InfoCard kind="sales-card" title="Đơn đặt phòng" period="Trong tháng" icon="bi-receipt-cutoff" value={String(data.bookings.current)} trend={data.bookings} />
+                <InfoCard kind="revenue-card" title="Lợi nhuận" period="Trong tháng" icon="bi-currency-dollar" value={money(data.revenue.current)} trend={data.revenue} />
+              </div>
+            </div>
+            <div className="col-12">
+              <RevenueChart year={data.year} values={data.revenueByMonth} />
+            </div>
+          </div>
+        </section>
+      )}
     </>
   );
 }

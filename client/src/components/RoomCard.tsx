@@ -1,29 +1,54 @@
 import { Link } from "react-router-dom";
 import type { Room } from "../api/client";
 
-export function RoomCard({ room }: { room: Room }) {
+/** Thẻ phòng có ảnh nền và lớp phủ thông tin (RoomBox trong views/components/RoomLibrary.php) */
+export function RoomCard({ room, detailLabel = "Click để xem" }: { room: Room; detailLabel?: string }) {
+  const href = `/rooms/${room.id}`;
   return (
-    <div className="card h-100 shadow-sm">
-      {room.image && (
-        <img src={room.image} className="card-img-top" alt={room.hotelName} style={{ height: 200, objectFit: "cover" }} />
-      )}
-      <div className="card-body">
-        <h5 className="card-title">
-          <Link to={`/rooms/${room.id}`} className="text-decoration-none">
-            {room.hotelName}
-          </Link>
-        </h5>
-        <p className="card-text text-muted small mb-2">{room.address}</p>
-        <p className="mb-1">
-          <span className="badge text-bg-light me-1">{room.type?.name}</span>
-          <span className="badge text-bg-light">{room.area} m²</span>
-        </p>
-      </div>
-      <div className="card-footer d-flex justify-content-between align-items-center">
-        <span className="fw-bold text-success">${room.price}</span>
-        <span>
-          {room.quality} <i className="bi bi-star-fill text-warning" />
-        </span>
+    <div className="card-box-a card-shadow">
+      <div className="img-box-a">{room.image && <img src={room.image} alt={room.hotelName} className="img-a img-fluid" />}</div>
+      <div className="card-overlay">
+        <div className="card-overlay-a-content">
+          <div className="card-header-a">
+            <h2 className="card-title-a">
+              <Link to={href}>{room.type?.name ?? room.hotelName}</Link>
+            </h2>
+          </div>
+          <div className="card-body-a">
+            <div className="price-box d-flex">
+              <span className="price-a">Giá | $ {room.price.toFixed(2)}</span>
+            </div>
+            <Link to={href} className="link-a">
+              {detailLabel}
+              <span className="bi bi-chevron-right" />
+            </Link>
+          </div>
+          <div className="card-footer-a">
+            <ul className="card-info d-flex justify-content-around">
+              <li>
+                <h4 className="card-info-title">Area</h4>
+                <span>
+                  {room.area}m<sup>2</sup>
+                </span>
+              </li>
+              <li>
+                <h4 className="card-info-title">Beds</h4>
+                <span>{room.numberBed}</span>
+              </li>
+              <li>
+                <h4 className="card-info-title">People</h4>
+                <span>{room.numberPeople}</span>
+              </li>
+              <li>
+                <h4 className="card-info-title">Quality</h4>
+                <span>
+                  {room.quality}
+                  <i className="bi bi-star-fill text-warning ms-1" />
+                </span>
+              </li>
+            </ul>
+          </div>
+        </div>
       </div>
     </div>
   );

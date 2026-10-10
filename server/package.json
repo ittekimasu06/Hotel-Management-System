@@ -7,9 +7,10 @@
     "dev": "tsx watch src/index.ts",
     "build": "tsc",
     "start": "node dist/index.js",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc --noEmit && tsc -p scripts",
     "db:generate": "prisma generate",
-    "db:pull": "prisma db pull --print"
+    "db:pull": "prisma db pull --print",
+    "db:normalize": "tsx scripts/normalize-unicode.ts"
   },
   "dependencies": {
     "@prisma/client": "^6.19.3",
@@ -22,6 +23,7 @@
     "express-session": "^1.19.0",
     "helmet": "^8.3.0",
     "multer": "^2.4.0",
+    "mysql2": "^3.24.5",
     "nodemailer": "^10.1.0",
     "zod": "^3.25.76"
   },
@@ -37,7 +39,7 @@
     "typescript": "^7.0.2"
   },
   "overrides": {
-    "mysql2": "^3.24.5",
+    "mysql2": "$mysql2",
     "uuid": "^11.1.1"
   }
 }

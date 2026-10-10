@@ -111,3 +111,11 @@ npm run dev
 ```
 
 Do **not** run `prisma migrate` against the existing database; the Prisma schema maps the current tables as-is.
+
+Some Vietnamese text imported from the PHP version is stored in decomposed Unicode (NFD), which breaks searches such as "Hà Nội". Normalize it once (back up the database first):
+
+```bash
+cd server
+npm run db:normalize            # preview the cells that would change
+npm run db:normalize -- --apply # write the changes
+```

@@ -76,7 +76,7 @@ export function formatDate(value: string): string {
     const [y, m, d] = value.split("-");
     return `${d}/${m}/${y}`;
   }
-  return new Date(value).toLocaleDateString("vi-VN", { timeZone: "Asia/Ho_Chi_Minh" });
+  return new Date(value).toLocaleDateString("vi-VN", { timeZone: "Asia/Ho_Chi_Minh", day: "2-digit", month: "2-digit", year: "numeric" });
 }
 
 /** Ngày hôm nay theo giờ Việt Nam, dạng YYYY-MM-DD (dùng cho input type="date") */
