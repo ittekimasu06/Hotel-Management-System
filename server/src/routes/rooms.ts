@@ -62,6 +62,16 @@ roomsRouter.get("/", async (req, res) => {
   });
 });
 
+/** Các địa điểm nổi bật trên trang chủ (giống bản PHP) */
+const DESTINATIONS = ["Hạ Long", "Nha Trang", "Đà Lạt", "Đà Nẵng"];
+
+roomsRouter.get("/destinations", async (_req, res) => {
+  const counts = await prisma.$transaction(
+    DESTINATIONS.map((name) => prisma.room.count({ where: { address: { contains: name } } })),
+  );
+  res.json(DESTINATIONS.map((name, i) => ({ name, count: counts[i] })));
+});
+
 roomsRouter.get("/:id", async (req, res) => {
   const id = z.coerce.number().int().positive().parse(req.params.id);
   const room = await prisma.room.findUnique({ where: { id }, include: { type: true } });

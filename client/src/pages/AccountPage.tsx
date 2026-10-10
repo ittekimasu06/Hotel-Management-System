@@ -8,9 +8,24 @@ function roleName(permission: number) {
   return "Khách hàng";
 }
 
+type Message = { type: "success" | "danger"; text: string } | null;
+
 export function AccountPage() {
-  const { user } = useAuth();
-  const [message, setMessage] = useState<{ type: "success" | "danger"; text: string } | null>(null);
+  const { user, updateProfile } = useAuth();
+  const [message, setMessage] = useState<Message>(null);
+  const [profileMessage, setProfileMessage] = useState<Message>(null);
+
+  async function onUpdateProfile(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const form = new FormData(e.currentTarget);
+    const text = (k: string) => String(form.get(k) ?? "").trim();
+    try {
+      await updateProfile({ fullname: text("fullname"), email: text("email"), phone: text("phone") || undefined });
+      setProfileMessage({ type: "success", text: "Cập nhật thông tin thành công" });
+    } catch (err) {
+      setProfileMessage({ type: "danger", text: (err as Error).message });
+    }
+  }
 
   async function onChangePassword(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -34,18 +49,31 @@ export function AccountPage() {
     <div className="row g-4">
       <div className="col-lg-6">
         <h1 className="h4 mb-3">Tài khoản</h1>
-        <dl className="row">
-          <dt className="col-sm-4">Họ tên</dt>
-          <dd className="col-sm-8">{user.fullname}</dd>
-          <dt className="col-sm-4">Tên đăng nhập</dt>
-          <dd className="col-sm-8">{user.username}</dd>
-          <dt className="col-sm-4">Email</dt>
-          <dd className="col-sm-8">{user.email}</dd>
-          <dt className="col-sm-4">Số điện thoại</dt>
-          <dd className="col-sm-8">{user.phone || "—"}</dd>
-          <dt className="col-sm-4">Vai trò</dt>
-          <dd className="col-sm-8">{roleName(user.permission)}</dd>
-        </dl>
+        <p className="text-muted">
+          Tên đăng nhập: <b>{user.username}</b> · Vai trò: <b>{roleName(user.permission)}</b>
+        </p>
+        {profileMessage && <div className={`alert alert-${profileMessage.type}`}>{profileMessage.text}</div>}
+        <form onSubmit={onUpdateProfile}>
+          <div className="mb-3">
+            <label className="form-label" htmlFor="p-fullname">
+              Họ tên
+            </label>
+            <input id="p-fullname" name="fullname" className="form-control" defaultValue={user.fullname} required maxLength={100} />
+          </div>
+          <div className="mb-3">
+            <label className="form-label" htmlFor="p-email">
+              Email
+            </label>
+            <input id="p-email" name="email" type="email" className="form-control" defaultValue={user.email} required maxLength={45} />
+          </div>
+          <div className="mb-3">
+            <label className="form-label" htmlFor="p-phone">
+              Số điện thoại
+            </label>
+            <input id="p-phone" name="phone" type="tel" className="form-control" defaultValue={user.phone ?? ""} maxLength={20} />
+          </div>
+          <button className="btn btn-success">Lưu thông tin</button>
+        </form>
       </div>
       <div className="col-lg-6">
         <h2 className="h5 mb-3">Đổi mật khẩu</h2>

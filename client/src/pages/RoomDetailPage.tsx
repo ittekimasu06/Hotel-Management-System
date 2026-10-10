@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import DOMPurify from "dompurify";
 import { api, type Room } from "../api/client";
+import { BookingForm } from "../components/BookingForm";
 
 const STATUS: Record<number, { label: string; className: string }> = {
   1: { label: "Còn phòng trống", className: "text-success" },
@@ -66,7 +67,7 @@ export function RoomDetailPage() {
               </li>
             )}
           </ul>
-          {/* TODO (giai đoạn 3): form đặt phòng */}
+          <BookingForm room={room} />
         </div>
       </div>
 

@@ -7,6 +7,8 @@ import { sessionMiddleware } from "./lib/session.js";
 import { loadUser } from "./middleware/auth.js";
 import { csrfGuard } from "./middleware/csrf.js";
 import { authRouter } from "./routes/auth.js";
+import { bookingsRouter } from "./routes/bookings.js";
+import { contactsRouter } from "./routes/contacts.js";
 import { roomsRouter } from "./routes/rooms.js";
 import { roomTypesRouter } from "./routes/room-types.js";
 
@@ -34,6 +36,8 @@ api.get("/health", (_req, res) => {
 api.use("/auth", authRouter);
 api.use("/rooms", roomsRouter);
 api.use("/room-types", roomTypesRouter);
+api.use("/bookings", bookingsRouter);
+api.use("/contacts", contactsRouter);
 
 api.use((_req, _res, next) => {
   next(new HttpError(404, "Không tìm thấy API"));

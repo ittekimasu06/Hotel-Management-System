@@ -12,7 +12,7 @@ export function Layout() {
 
   return (
     <>
-      <nav className="navbar navbar-expand bg-body-tertiary border-bottom mb-4">
+      <nav className="navbar navbar-expand bg-body-tertiary border-bottom mb-4 d-print-none">
         <div className="container">
           <NavLink to="/" className="navbar-brand fw-bold">
             Ho<span className="text-success">stay</span>
@@ -21,6 +21,14 @@ export function Layout() {
             <NavLink to="/rooms" className="nav-link">
               Đặt phòng
             </NavLink>
+            <NavLink to="/contact" className="nav-link">
+              Liên hệ
+            </NavLink>
+            {user && (
+              <NavLink to="/bookings" className="nav-link">
+                Đơn của tôi
+              </NavLink>
+            )}
             {user && user.permission >= Permission.STAFF && (
               <NavLink to="/admin" className="nav-link">
                 Quản trị

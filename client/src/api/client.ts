@@ -39,3 +39,45 @@ export type Room = {
 };
 
 export type Paged<T> = { items: T[]; page: number; pageSize: number; total: number };
+
+export type Booking = {
+  id: number;
+  createdAt: string;
+  fullname: string;
+  email: string;
+  phone: string;
+  startDate: string;
+  endDate: string;
+  numberRoom: number;
+  numberAdult: number;
+  numberChildren: number;
+  notes: string | null;
+  status: { id: number; name: string } | null;
+  isPaid: boolean;
+  cancelled: boolean;
+  staffName: string | null;
+  nights: number;
+  total: number;
+  canCancel: boolean;
+  room: Room;
+};
+
+export type Destination = { name: string; count: number };
+
+/**
+ * Hiển thị ngày dạng dd/mm/yyyy. "YYYY-MM-DD" (ngày nhận/trả phòng) giữ nguyên ngày;
+ * chuỗi ISO có giờ (thời điểm tạo) được đổi sang giờ Việt Nam.
+ */
+export function formatDate(value: string): string {
+  if (value.length === 10) {
+    const [y, m, d] = value.split("-");
+    return `${d}/${m}/${y}`;
+  }
+  return new Date(value).toLocaleDateString("vi-VN", { timeZone: "Asia/Ho_Chi_Minh" });
+}
+
+/** Ngày hôm nay theo giờ Việt Nam, dạng YYYY-MM-DD (dùng cho input type="date") */
+export function todayISO(offsetDays = 0): string {
+  const d = new Date(Date.now() + offsetDays * 24 * 60 * 60 * 1000);
+  return new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Ho_Chi_Minh" }).format(d);
+}

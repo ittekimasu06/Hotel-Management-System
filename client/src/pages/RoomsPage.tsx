@@ -70,6 +70,23 @@ export function RoomsPage() {
         </div>
       </form>
 
+      {params.get("address") && (
+        <p>
+          Địa điểm: <span className="badge text-bg-success">{params.get("address")}</span>{" "}
+          <button
+            className="btn btn-link btn-sm p-0 align-baseline"
+            onClick={() => {
+              const next = new URLSearchParams(params);
+              next.delete("address");
+              next.delete("page");
+              setParams(next);
+            }}
+          >
+            Bỏ lọc
+          </button>
+        </p>
+      )}
+
       {error && <div className="alert alert-danger">{error}</div>}
       {!data && !error && <p>Đang tải...</p>}
       {data && data.items.length === 0 && <p>Không tìm thấy phòng phù hợp.</p>}

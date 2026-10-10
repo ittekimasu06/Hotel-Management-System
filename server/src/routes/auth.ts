@@ -129,6 +129,21 @@ authRouter.post("/logout", (req, res, next) => {
   });
 });
 
+const profileBody = z.object({
+  fullname: z.string().trim().min(1, "Hãy nhập họ tên").max(100),
+  email: z.string().trim().email("Email không hợp lệ").max(45),
+  phone: z.string().trim().max(20).optional(),
+});
+
+authRouter.put("/profile", requireAuth, async (req, res) => {
+  const body = profileBody.parse(req.body);
+  const user = await prisma.user.update({
+    where: { id: req.user!.id },
+    data: { fullname: body.fullname, email: body.email, phone: body.phone || null },
+  });
+  res.json({ user: toAuthUser(user) });
+});
+
 authRouter.put("/password", requireAuth, async (req, res) => {
   const body = changePasswordBody.parse(req.body);
 
