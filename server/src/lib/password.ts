@@ -8,8 +8,8 @@ const LEGACY_MD5 = /^[a-f0-9]{32}$/i;
 const DUMMY_HASH = bcrypt.hashSync("dummy-password", COST);
 
 /**
- * Băm mật khẩu bằng bcrypt. Dùng tiền tố $2y$ (giống PHP password_hash, cùng thuật toán với $2b$)
- * để bản PHP vẫn đọc được trong giai đoạn chạy song song.
+ * Băm mật khẩu bằng bcrypt. Dùng tiền tố $2y$ (cùng thuật toán với $2b$) để thống nhất với các hash
+ * đã có trong database từ bản PHP.
  */
 export async function hashPassword(plain: string): Promise<string> {
   const hash = await bcrypt.hash(plain, COST);
@@ -19,7 +19,7 @@ export async function hashPassword(plain: string): Promise<string> {
 export type VerifyResult = { ok: boolean; needsRehash: boolean };
 
 /**
- * Kiểm tra mật khẩu với hash đã lưu. Hỗ trợ hash MD5 cũ của bản PHP đầu tiên.
+ * Kiểm tra mật khẩu với hash đã lưu. Hỗ trợ hash MD5 cũ từ bản PHP (tự nâng cấp khi đăng nhập).
  */
 export async function verifyPassword(plain: string, stored: string | null): Promise<VerifyResult> {
   if (!stored) {

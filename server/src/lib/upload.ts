@@ -7,8 +7,8 @@ import { HttpError } from "./http-error.js";
 
 const MAX_SIZE = 5 * 1024 * 1024;
 
-/** Tiền tố đường dẫn ảnh lưu trong DB, giữ giống bản PHP để cả hai bản cùng hiển thị được */
-const STORED_PREFIX = "/hostay/public/images/";
+/** Tiền tố đường dẫn ảnh lưu trong DB (ảnh cũ từ bản PHP có dạng "/hostay/public/images/<file>") */
+const STORED_PREFIX = "/uploads/";
 
 /** Nhận diện định dạng ảnh qua chữ ký nhị phân, không tin vào đuôi file hay Content-Type */
 function detectImage(buf: Buffer): "jpg" | "png" | "gif" | "webp" | null {
@@ -33,7 +33,7 @@ export async function saveImage(file: Express.Multer.File): Promise<string> {
   if (!ext) {
     throw new HttpError(400, "File không phải ảnh hợp lệ (chỉ nhận JPG, PNG, GIF, WEBP)");
   }
-  // Tên file do server sinh ra, giống định dạng của bản PHP: <timestamp>_<số ngẫu nhiên>.<đuôi>
+  // Tên file do server sinh ra: <timestamp>_<số ngẫu nhiên>.<đuôi>
   const name = `${Math.floor(Date.now() / 1000)}_${randomInt(10000, 100000)}.${ext}`;
   await fs.mkdir(config.uploadDir, { recursive: true });
   await fs.writeFile(path.join(config.uploadDir, name), file.buffer, { flag: "wx" });

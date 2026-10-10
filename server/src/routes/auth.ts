@@ -113,7 +113,7 @@ authRouter.post("/login", authLimiter, async (req, res) => {
         data: { password: await hashPassword(body.password) },
       });
     } catch (err) {
-      console.warn("Không thể nâng cấp hash mật khẩu, hãy chạy migrations/001_password_hash.sql", err);
+      console.warn("Không thể nâng cấp hash mật khẩu, hãy mở rộng cột tbluser.user_password lên VARCHAR(255)", err);
     }
   }
 

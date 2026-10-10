@@ -2,7 +2,7 @@ import path from "node:path";
 import type { Room, RoomType } from "@prisma/client";
 
 /**
- * Ảnh cũ được lưu dạng "/hostay/public/images/<file>"; API trả về "/uploads/<file>".
+ * DB lưu "/uploads/<file>" (ảnh cũ từ bản PHP: "/hostay/public/images/<file>"); API luôn trả về "/uploads/<file>".
  */
 export function imageUrl(stored: string | null): string | null {
   if (!stored) return null;

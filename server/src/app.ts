@@ -24,7 +24,7 @@ if (config.isProduction) {
 }
 app.use(helmet());
 
-// Ảnh phòng dùng chung thư mục với bản PHP
+// Ảnh phòng do admin upload
 app.use("/uploads", express.static(config.uploadDir, { fallthrough: false }));
 
 const api = express.Router();
@@ -67,6 +67,11 @@ const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
   }
   if (err?.type === "entity.parse.failed") {
     res.status(400).json({ error: "JSON không hợp lệ" });
+    return;
+  }
+  // Lỗi 4xx từ thư viện (vd: express.static trả 404 khi thiếu file, 403 khi đường dẫn không hợp lệ)
+  if (typeof err?.status === "number" && err.status >= 400 && err.status < 500) {
+    res.status(err.status).json({ error: err.status === 404 ? "Không tìm thấy" : "Yêu cầu không hợp lệ" });
     return;
   }
   console.error(err);

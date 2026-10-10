@@ -7,7 +7,7 @@ const env = z
     DATABASE_URL: z.string().url(),
     SESSION_SECRET: z.string().min(16, "SESSION_SECRET phải dài ít nhất 16 ký tự"),
     PORT: z.coerce.number().default(4000),
-    UPLOAD_DIR: z.string().default("../public/images"),
+    UPLOAD_DIR: z.string().default("uploads"),
     NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
     SMTP_HOST: z.string().default(""),
     SMTP_PORT: z.coerce.number().default(587),

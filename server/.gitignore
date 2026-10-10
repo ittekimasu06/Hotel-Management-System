@@ -1,3 +1,6 @@
 node_modules/
 dist/
 .env
+
+# Ảnh upload khi chạy; ảnh mẫu đi kèm repo vẫn được theo dõi vì đã có trong git
+uploads/*
