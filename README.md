@@ -1,91 +1,76 @@
->### Note:
->- This project **Xampp** for local hosting and development.
->- Copy `php.config.example.ini` to `php.config.ini` and edit the database / SMTP configuration there (this file is git-ignored, never commit it)
->- For assistance, please refer to [XAMPP Documentations](https://www.apachefriends.org/docs/)
+### Introduction
 
-### Introduction:
+This project is inspired by hotel booking websites like [booking.com](https://www.booking.com) or [traveloka](https://www.traveloka.com). Customers can search and book rooms, view and cancel their bookings, and contact the hotel; staff manage rooms, bookings, users and customer messages from an admin panel.
 
-This project is inspired by hotel booking websites like [booking.com](booking.com) or [traveloka](traveloka), etc. Functionalities are rather simple as our skills are not quite there yet. But with that being said, we did try our best to complete the project.
+The project was originally written in PHP and has been rewritten in Node.js. The PHP version remains available in the git history (before the `migrate-to-node` branch was merged).
 
 **Technologies used:**
 
-- Frontend: HTML5, CSS3, Bootstrap
-- Backend: PHP
-- Database: MySQL
+- Frontend: React, Vite, React Router, Bootstrap (`client/`)
+- Backend: Express, TypeScript, Prisma, zod (`server/`)
+- Database: MySQL 8
 
 ---
 
-### Installation:
+### Installation
 
-**1. Prerequisite**
+**1. Prerequisites**
 
-- Make sure you have XAMPP installed (If not, download and install it [here](https://www.apachefriends.org/download.html).
+- [Node.js](https://nodejs.org) 20 or newer
+- MySQL 8 (for example the [MySQL Installer](https://dev.mysql.com/downloads/installer/) on Windows)
 
-- After cloning the repo to your local computer, paste it to the following path: `xampp\htdocs`
+**2. Create the database**
 
-**2. Edit config files to connect to port `3307`:**
+Create a database named `hostay_db` (charset `utf8mb4`) and import `hostay_db.sql`, for example in MySQL Workbench:
 
-Locate `xampp\phpMyAdmin\config.inc.php` or open XAMPP Control Panel and choose the `Config` option for `Apache`:
-
-```php
-$cfg['Servers'][$i]['auth_type'] = 'config';
-$cfg['Servers'][$i]['user'] = 'root';
-$cfg['Servers'][$i]['password'] = '';
-$cfg['Servers'][$i]['extension'] = 'mysqli';
-$cfg['Servers'][$i]['port'] = 3307;      # Edit or add this line
-$cfg['Servers'][$i]['AllowNoPassword'] = true;
-$cfg['Lang'] = '';
+```sql
+CREATE DATABASE hostay_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 ```
 
-Locate `xampp\mysql\bin\my.ini` or open XAMPP Control Panel and choose the `Config` option for `MySQL`:
+Then *File → Open SQL Script…* → `hostay_db.sql`, double-click `hostay_db` to make it the default schema, and run the script.
 
-```ini
-# password       = your_password
-port=3307                                # Edit or add this line
-socket="C:/xampp/mysql/mysql.sock"
-```
-```ini
-# The MySQL server
-default-character-set=utf8mb4
-[mysqld]
-port=3307                                # Edit or add this line
-socket="C:/xampp/mysql/mysql.sock"
-basedir="C:/xampp/mysql"
+**3. Configure and start the API** (http://localhost:4000)
 
+```bash
+cd server
+cp .env.example .env      # set DATABASE_URL (MySQL password) and SESSION_SECRET
+npm install
+npm run db:generate
+npm run db:normalize -- --apply   # one-time fix for Vietnamese text in the sample data (see below)
+npm run dev
 ```
 
-**3. Create a database on phpMyAdmin**
+**4. Start the web client** (http://localhost:5173), in another terminal
 
-Create a new database by importing `hostay_db.sql` located at `xampp\htdocs\hostay` 
+```bash
+cd client
+npm install
+npm run dev
+```
 
-If your database was imported from an older version of `hostay_db.sql`, also run `migrations/001_password_hash.sql` so the password column can store modern password hashes.
-
-**4. Start XAMPP**
-- Launch the XAMPP Control Panel
-- Start the Apache and MySQL services
+Sign in with `admin` / `admin` and change the password from *Thông tin cá nhân*.
 
 ---
-### Code Construction
 
-The graph below shows the construction of the project's code:
-<div align="center">
-    <img src="demo/systemdiagrameng.png" width="500"/>
-</div>
+### Notes
+
+- Do **not** run `prisma migrate` against the database; the Prisma schema maps the existing tables as-is. A `sessions` table is created automatically to store logins.
+- Room images are stored in `server/uploads/`. Uploads made at runtime are git-ignored.
+- Some Vietnamese text in the sample data is stored in decomposed Unicode (NFD), which breaks searches such as "Hà Nội". `npm run db:normalize` previews the affected cells and `npm run db:normalize -- --apply` rewrites them (back up the database first). New input is normalized automatically.
+- Replying to customer messages by email needs the `SMTP_*` settings in `server/.env` (for Gmail, use an app password).
+- Passwords from the original database (MD5) still work and are upgraded to bcrypt on the next login.
 
 ---
+
 ### Demo
 
 <div align="center">
     <img src="demo/img-1.png" width="500"/>
 </div>
 
-
-
 <div align="center">
     <img src="demo/img-3.png" width="500"/>
 </div>
-
-
 
 <div align="center">
     <img src="demo/img-10.png" width="500"/>

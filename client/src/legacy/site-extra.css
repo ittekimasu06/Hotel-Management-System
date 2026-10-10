@@ -1,0 +1,61 @@
+/* Bổ sung cho views_style.css (trước đây nằm trong thẻ <style> của views/layouts/header.php) */
+* {
+  font-family: "Nunito", sans-serif;
+  font-optical-sizing: auto;
+}
+
+/* Icon Bootstrap dùng font riêng, không được ghi đè bởi quy tắc * ở trên */
+.bi::before,
+[class^="bi-"]::before,
+[class*=" bi-"]::before {
+  font-family: "bootstrap-icons" !important;
+}
+
+/* Ô ảnh vuông trong album (bản cũ tính chiều cao bằng JavaScript) */
+.gallery-show {
+  aspect-ratio: 1 / 1;
+}
+
+/* Ảnh địa điểm cùng chiều cao (bản cũ tính bằng JavaScript) */
+.loc-img {
+  aspect-ratio: 4 / 3;
+}
+
+/* Hộp xem ảnh phóng to cho album */
+.album-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  background: rgba(0, 0, 0, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.album-lightbox img {
+  max-width: 90vw;
+  max-height: 85vh;
+  object-fit: contain;
+}
+.album-lightbox button {
+  position: absolute;
+  background: none;
+  border: 0;
+  color: #fff;
+  font-size: 2.5rem;
+  line-height: 1;
+}
+.album-lightbox .lb-close {
+  top: 16px;
+  right: 24px;
+}
+.album-lightbox .lb-prev {
+  left: 16px;
+}
+.album-lightbox .lb-next {
+  right: 16px;
+}
+.album-lightbox .lb-count {
+  position: absolute;
+  bottom: 16px;
+  color: #ddd;
+}

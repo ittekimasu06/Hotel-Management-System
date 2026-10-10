@@ -1,0 +1,10 @@
+{
+  // Kiểm tra kiểu cho các script chạy tay (tsx), không đưa vào bản build trong dist/
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "rootDir": "..",
+    "noEmit": true,
+    "types": ["node"]
+  },
+  "include": ["."]
+}
