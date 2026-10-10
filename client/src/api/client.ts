@@ -8,10 +8,13 @@ export class ApiError extends Error {
 }
 
 export async function api<T>(path: string, init?: RequestInit): Promise<T> {
+  // FormData (upload file) để trình duyệt tự đặt Content-Type multipart kèm boundary;
+  // mọi request khác gửi JSON (server bắt buộc để chống CSRF)
+  const isForm = init?.body instanceof FormData;
   const res = await fetch(`/api${path}`, {
     credentials: "same-origin",
-    headers: { "Content-Type": "application/json", ...init?.headers },
     ...init,
+    headers: isForm ? init?.headers : { "Content-Type": "application/json", ...init?.headers },
   });
   const body = await res.json().catch(() => null);
   if (!res.ok) {

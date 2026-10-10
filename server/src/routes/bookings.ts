@@ -43,7 +43,7 @@ const createBody = z
 
 type BillWithRelations = Bill & { status: BillStatus | null; room: Room & { type: RoomType | null } };
 
-function serializeBooking(bill: BillWithRelations) {
+export function serializeBooking(bill: BillWithRelations) {
   const nights = nightsBetween(bill.startDate, bill.endDate);
   const price = bill.room.price.toNumber();
   const numberRoom = bill.numberRoom ?? 1;
@@ -69,7 +69,8 @@ function serializeBooking(bill: BillWithRelations) {
   };
 }
 
-const include = { status: true, room: { include: { type: true } } } as const;
+export const bookingInclude = { status: true, room: { include: { type: true } } } as const;
+const include = bookingInclude;
 
 function canView(user: AuthUser, bill: Bill) {
   return bill.customerId === user.id || user.permission >= Permission.STAFF;

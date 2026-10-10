@@ -1,11 +1,13 @@
 import express, { type ErrorRequestHandler } from "express";
 import helmet from "helmet";
+import multer from "multer";
 import { ZodError } from "zod";
 import { config } from "./config.js";
 import { HttpError } from "./lib/http-error.js";
 import { sessionMiddleware } from "./lib/session.js";
 import { loadUser } from "./middleware/auth.js";
 import { csrfGuard } from "./middleware/csrf.js";
+import { adminRouter } from "./routes/admin/index.js";
 import { authRouter } from "./routes/auth.js";
 import { bookingsRouter } from "./routes/bookings.js";
 import { contactsRouter } from "./routes/contacts.js";
@@ -27,7 +29,8 @@ app.use("/uploads", express.static(config.uploadDir, { fallthrough: false }));
 const api = express.Router();
 api.use(express.json({ limit: "100kb" }));
 api.use(sessionMiddleware);
-api.use(csrfGuard());
+// Chỉ route quản lý phòng được nhận multipart (upload ảnh)
+api.use(csrfGuard(["/admin/rooms"]));
 api.use(loadUser);
 
 api.get("/health", (_req, res) => {
@@ -38,6 +41,7 @@ api.use("/rooms", roomsRouter);
 api.use("/room-types", roomTypesRouter);
 api.use("/bookings", bookingsRouter);
 api.use("/contacts", contactsRouter);
+api.use("/admin", adminRouter);
 
 api.use((_req, _res, next) => {
   next(new HttpError(404, "Không tìm thấy API"));
@@ -52,6 +56,11 @@ const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
   }
   if (err instanceof HttpError) {
     res.status(err.status).json({ error: err.message });
+    return;
+  }
+  if (err instanceof multer.MulterError) {
+    const message = err.code === "LIMIT_FILE_SIZE" ? "Ảnh vượt quá 5MB" : "Upload không hợp lệ";
+    res.status(err.code === "LIMIT_FILE_SIZE" ? 413 : 400).json({ error: message });
     return;
   }
   if (err?.type === "entity.parse.failed") {
