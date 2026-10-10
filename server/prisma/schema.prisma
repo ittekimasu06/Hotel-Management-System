@@ -1,0 +1,112 @@
+// Ánh xạ trực tiếp vào database hostay_db hiện có (không đổi tên bảng/cột).
+// Database không có khóa ngoại nên quan hệ được Prisma quản lý (relationMode = "prisma").
+// KHÔNG chạy `prisma migrate` trên database cũ; dùng `npm run db:pull` để đối chiếu.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider     = "mysql"
+  url          = env("DATABASE_URL")
+  relationMode = "prisma"
+}
+
+model User {
+  id         Int       @id @default(autoincrement()) @map("user_id") @db.UnsignedInt
+  username   String    @map("user_name") @db.VarChar(45)
+  password   String    @map("user_password") @db.VarChar(255)
+  fullname   String    @map("user_fullname") @db.VarChar(100)
+  email      String    @map("user_email") @db.VarChar(45)
+  phone      String?   @map("user_phone") @db.VarChar(20)
+  permission Int?      @default(0) @map("user_permission") @db.UnsignedInt
+  createdAt  DateTime? @map("user_created_at") @db.DateTime(0)
+
+  bills Bill[]
+
+  @@map("tbluser")
+}
+
+model RoomType {
+  id    Int     @id @default(autoincrement()) @map("roomtype_id") @db.UnsignedInt
+  name  String  @map("roomtype_name") @db.VarChar(45)
+  notes String? @map("roomtype_notes") @db.Text
+
+  rooms Room[]
+
+  @@map("tblroomtype")
+}
+
+model Room {
+  id           Int     @id @default(autoincrement()) @map("room_id") @db.UnsignedInt
+  numberPeople Int?    @map("room_number_people") @db.UnsignedInt
+  numberBed    Int?    @map("room_number_bed") @db.UnsignedInt
+  quality      Float?  @map("room_quality") @db.Float
+  bedType      String? @map("room_bed_type") @db.VarChar(100)
+  price        Decimal @map("room_price") @db.Decimal(18, 2)
+  detail       String? @map("room_detail") @db.Text
+  area         Float   @map("room_area") @db.Float
+  /// 1: còn phòng, 2: hết phòng, 3: đang sửa chữa
+  status       Int?    @default(0) @map("room_static") @db.UnsignedInt
+  image        String? @map("room_image") @db.Text
+  address      String  @map("room_address") @db.VarChar(200)
+  hotelName    String  @map("room_hotel_name") @db.VarChar(100)
+  typeId       Int     @map("room_type_id") @db.UnsignedInt
+
+  type  RoomType @relation(fields: [typeId], references: [id])
+  bills Bill[]
+
+  @@index([typeId])
+  @@map("tblroom")
+}
+
+model BillStatus {
+  id    Int     @id @default(autoincrement()) @map("billstatic_id") @db.UnsignedInt
+  name  String  @map("billstatic_name") @db.VarChar(45)
+  notes String? @map("billstatic_notes") @db.Text
+
+  bills Bill[]
+
+  @@map("tblbillstatic")
+}
+
+model Bill {
+  id             Int      @id @default(autoincrement()) @map("bill_id") @db.UnsignedInt
+  roomId         Int      @map("bill_room_id") @db.UnsignedInt
+  customerId     Int      @map("bill_customer_id") @db.UnsignedInt
+  createdAt      DateTime @map("bill_created_at") @db.DateTime(0)
+  fullname       String   @map("bill_fullname") @db.VarChar(100)
+  email          String   @map("bill_email") @db.VarChar(45)
+  phone          String   @map("bill_phone") @db.VarChar(20)
+  startDate      DateTime @map("bill_start_date") @db.DateTime(0)
+  endDate        DateTime @map("bill_end_date") @db.DateTime(0)
+  numberAdult    Int?     @default(0) @map("bill_number_adult") @db.UnsignedInt
+  numberChildren Int?     @default(0) @map("bill_number_children") @db.UnsignedInt
+  numberRoom     Int?     @default(1) @map("bill_number_room") @db.UnsignedInt
+  notes          String?  @map("bill_notes") @db.Text
+  statusId       Int?     @default(0) @map("bill_static") @db.UnsignedInt
+  isPaid         Boolean? @default(false) @map("bill_is_paid")
+  cancel         Int?     @default(0) @map("bill_cancel") @db.UnsignedTinyInt
+  staffName      String?  @map("bill_staff_name") @db.VarChar(100)
+
+  room     Room        @relation(fields: [roomId], references: [id])
+  customer User        @relation(fields: [customerId], references: [id])
+  status   BillStatus? @relation(fields: [statusId], references: [id])
+
+  @@index([roomId])
+  @@index([customerId])
+  @@index([statusId])
+  @@map("tblbill")
+}
+
+model Contact {
+  id        Int      @id @default(autoincrement()) @map("contact_id") @db.UnsignedInt
+  fullname  String   @map("contact_fullname") @db.VarChar(100)
+  email     String   @map("contact_email") @db.VarChar(100)
+  subject   String   @map("contact_subject") @db.VarChar(200)
+  notes     String   @map("contact_notes") @db.Text
+  seen      Int?     @default(0) @map("contact_seen") @db.UnsignedTinyInt
+  createdAt DateTime @map("contact_created_at") @db.DateTime(0)
+
+  @@map("tblcontact")
+}

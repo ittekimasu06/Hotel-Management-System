@@ -90,3 +90,24 @@ The graph below shows the construction of the project's code:
 <div align="center">
     <img src="demo/img-10.png" width="500"/>
 </div>
+
+---
+### Node.js version (in progress)
+
+The project is being rewritten with **Express + TypeScript + Prisma** (`server/`) and **React + Vite** (`client/`), using the same MySQL database.
+
+```bash
+# API (http://localhost:4000)
+cd server
+cp .env.example .env      # edit DATABASE_URL and SESSION_SECRET
+npm install
+npm run db:generate
+npm run dev
+
+# Web (http://localhost:5173), in another terminal
+cd client
+npm install
+npm run dev
+```
+
+Do **not** run `prisma migrate` against the existing database; the Prisma schema maps the current tables as-is.
