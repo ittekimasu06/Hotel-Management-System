@@ -1,14 +1,15 @@
 <?php
-session_start();
+require_once(__DIR__."/../libraries/Security.php");
+start_session();
 if(!isset($_SESSION["user"])) {
-    header("location:/hostay/admin/login.php");
+    redirect("/hostay/admin/login.php");
 } else {
     if(!isset($_SESSION["user"]["permission"]) || $_SESSION["user"]["permission"] < 1) {
-        header("location:/hostay/admin/login.php?err=permis");
+        redirect("/hostay/admin/login.php?err=permis");
     }
 }
 if(!isset($_GET["id"]) || $_GET["id"] <= 0 || !is_numeric($_GET["id"])) {
-    header("location:/hostay/admin/users.php?err=value");
+    redirect("/hostay/admin/users.php?err=value");
 }
 //
 $_SESSION["pos"] = "user";
@@ -19,6 +20,9 @@ require_once("../libraries/Utilities.php");
 
 $um = new UserModel();
 $user = $um->getUserById($_GET["id"]);
+if($user == null) {
+    redirect("/hostay/admin/users.php?err=noexist");
+}
 $isEdit = $_SESSION["user"]["permission"] >= $user->getUser_permission();
 
 if(isset($_POST["edit"])) {
@@ -28,6 +32,7 @@ if(isset($_POST["edit"])) {
     $permis = $_POST["slcPermis"];
     if($fullname != ""
         && checkEmail($email)
+        && is_numeric($permis)
         && $permis >= 0
         && $permis <= $_SESSION["user"]["permission"]) {
         $phone = $_POST["txtPhone"];
@@ -42,15 +47,15 @@ if(isset($_POST["edit"])) {
                 $_SESSION["user"]["email"] = $user->getUser_email();
                 $_SESSION["user"]["permission"] = $user->getUser_permission();
             }
-            header("location:/hostay/admin/users.php");
+            redirect("/hostay/admin/users.php");
         } else {
-            header("location:/hostay/admin/users.php?err=upd");
+            redirect("/hostay/admin/users.php?err=upd");
         }
     } else {
-      header("location:/hostay/admin/users.php?err=value");
+      redirect("/hostay/admin/users.php?err=value");
     }
   } else {
-    header("location:/hostay/admin/users.php?err=permis");
+    redirect("/hostay/admin/users.php?err=permis");
   }
 }
 
@@ -79,8 +84,8 @@ require_once("layouts/Toast.php");
             <div class="card-body profile-card pt-4 d-flex flex-column align-items-center">
 
               <img src="/hostay/public/user-profile.jpg" alt="Profile" class="rounded-circle">
-              <h2><?=$user->getUser_fullname()?></h2>
-              <h3><?=$user->getUser_name()?></h3>
+              <h2><?=e($user->getUser_fullname())?></h2>
+              <h3><?=e($user->getUser_name())?></h3>
               <div class="social-links mt-2">
                 <a href="#" class="twitter"><i class="bi bi-twitter"></i></a>
                 <a href="#" class="facebook"><i class="bi bi-facebook"></i></a>
@@ -120,22 +125,22 @@ require_once("layouts/Toast.php");
 
                   <div class="row">
                     <div class="col-lg-3 col-md-4 label ">Tên đầy đủ</div>
-                    <div class="col-lg-9 col-md-8"><?=$user->getUser_fullname()?></div>
+                    <div class="col-lg-9 col-md-8"><?=e($user->getUser_fullname())?></div>
                   </div>
 
                   <div class="row">
                     <div class="col-lg-3 col-md-4 label">Tên đăng nhập</div>
-                    <div class="col-lg-9 col-md-8"><?=$user->getUser_name()?></div>
+                    <div class="col-lg-9 col-md-8"><?=e($user->getUser_name())?></div>
                   </div>
 
                   <div class="row">
                     <div class="col-lg-3 col-md-4 label">Email</div>
-                    <div class="col-lg-9 col-md-8"><?=$user->getUser_email()?></div>
+                    <div class="col-lg-9 col-md-8"><?=e($user->getUser_email())?></div>
                   </div>
 
                   <div class="row">
                     <div class="col-lg-3 col-md-4 label">Số điện thoại</div>
-                    <div class="col-lg-9 col-md-8"><?=$user->getUser_phone()?></div>
+                    <div class="col-lg-9 col-md-8"><?=e($user->getUser_phone())?></div>
                   </div>
 
                   <div class="row">
@@ -167,6 +172,7 @@ require_once("layouts/Toast.php");
 
                   <!-- Profile Edit Form -->
                   <form action="" method="post" class="needs-validation" novalidate>
+                            <?=csrf_field()?>
 
                     <div class="row mb-3">
                       <label for="fullName" class="col-md-4 col-lg-3 col-form-label">Tên đầy đủ</label>
@@ -175,7 +181,7 @@ require_once("layouts/Toast.php");
                             type="text"
                             class="form-control"
                             id="fullName"
-                            value="<?=$user->getUser_fullname()?>"
+                            value="<?=e($user->getUser_fullname())?>"
                             required>
                       </div>
                     </div>
@@ -187,7 +193,7 @@ require_once("layouts/Toast.php");
                             type="text"
                             class="form-control"
                             id="emailInput"
-                            value="<?=$user->getUser_email()?>"
+                            value="<?=e($user->getUser_email())?>"
                             required>
                       </div>
                     </div>
@@ -198,7 +204,7 @@ require_once("layouts/Toast.php");
                         <input name="txtPhone"
                             type="text"
                             class="form-control"
-                            id="Phone" value="<?=$user->getUser_phone()?>">
+                            id="Phone" value="<?=e($user->getUser_phone())?>">
                       </div>
                     </div>
                     <div class="row mb-3">

@@ -212,7 +212,7 @@ INSERT INTO `tblroomtype` (`roomtype_id`, `roomtype_name`, `roomtype_notes`) VAL
 CREATE TABLE `tbluser` (
   `user_id` int UNSIGNED NOT NULL,
   `user_name` varchar(45) CHARACTER SET latin1 COLLATE latin1_swedish_ci NOT NULL,
-  `user_password` varchar(45) CHARACTER SET latin1 COLLATE latin1_swedish_ci NOT NULL,
+  `user_password` varchar(255) CHARACTER SET latin1 COLLATE latin1_swedish_ci NOT NULL,
   `user_fullname` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `user_email` varchar(45) CHARACTER SET latin1 COLLATE latin1_swedish_ci NOT NULL,
   `user_phone` varchar(20) CHARACTER SET latin1 COLLATE latin1_swedish_ci DEFAULT NULL,

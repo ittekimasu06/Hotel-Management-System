@@ -1,6 +1,6 @@
 >### Note:
 >- This project **Xampp** for local hosting and development.
->- Edit database connectivity configuration in ```php.config.ini```
+>- Copy `php.config.example.ini` to `php.config.ini` and edit the database / SMTP configuration there (this file is git-ignored, never commit it)
 >- For assistance, please refer to [XAMPP Documentations](https://www.apachefriends.org/docs/)
 
 ### Introduction:
@@ -57,6 +57,8 @@ basedir="C:/xampp/mysql"
 **3. Create a database on phpMyAdmin**
 
 Create a new database by importing `hostay_db.sql` located at `xampp\htdocs\hostay` 
+
+If your database was imported from an older version of `hostay_db.sql`, also run `migrations/001_password_hash.sql` so the password column can store modern password hashes.
 
 **4. Start XAMPP**
 - Launch the XAMPP Control Panel

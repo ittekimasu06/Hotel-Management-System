@@ -64,17 +64,16 @@ class BasicModel {
                     try{
                         $this->con->rollback();
                     } catch(Exception $e1) {
-                        echo $e1->getTrace();
+                        error_log($e1->getMessage());
                     }
                 }
             }
         } catch(Exception $e) {
-            echo $e->getMessage();
-            echo $e->getTrace();
+            error_log($e->getMessage());
             try{
                 $this->con->rollback();
             } catch(Exception $e1) {
-                echo $e1->getTrace();
+                error_log($e1->getMessage());
             }
         } finally {
             $stmt->close();
@@ -124,6 +123,37 @@ class BasicModel {
         }
         unset($sql);
         return false;
+    }
+
+    /**
+     * get database with Prepared Statement
+     * @param string $types  kiểu tham số của bind_param, vd: "is"
+     * @param array $params  giá trị tham số
+     */
+    protected function getV2(string $sql, string $types = "", array $params = []) : mysqli_result | bool {
+        try {
+            $stmt = $this->con->prepare($sql);
+            if(!$stmt) {
+                return false;
+            }
+            if($types !== "") {
+                $stmt->bind_param($types, ...$params);
+            }
+            $stmt->execute();
+            $result = $stmt->get_result();
+            $stmt->close();
+            return $result;
+        } catch(Exception $e) {
+            error_log($e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Tạo tham số cho LIKE '%key%', thoát các ký tự đặc biệt % và _
+     */
+    protected function likeParam(string $key) : string {
+        return "%".addcslashes($key, "%_\\")."%";
     }
 
     function __destruct() {

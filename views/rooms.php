@@ -9,7 +9,7 @@ $param = "";
 if(isset($_GET["key"]) && trim($_GET["key"]) != "") {
   $saveKey = trim($_GET["key"]);
   $similar->setRoom_hotel_name($saveKey);
-  $param = "key=".$saveKey;
+  $param = "key=".urlencode($saveKey);
 }
 if(isset($_GET["slt"]) && trim($_GET["slt"]) != "" && is_numeric(trim($_GET["slt"]))) {
   if($param != "") {
@@ -17,7 +17,7 @@ if(isset($_GET["slt"]) && trim($_GET["slt"]) != "" && is_numeric(trim($_GET["slt
   }
   $saveType = trim($_GET["slt"]);
   $similar->setRoom_type_id($saveType);
-  $param .= "slt=".$saveType;
+  $param .= "slt=".urlencode($saveType);
 }
 if(isset($_GET["sla"]) && trim($_GET["sla"]) != "") {
   if($param != "") {
@@ -25,7 +25,7 @@ if(isset($_GET["sla"]) && trim($_GET["sla"]) != "") {
   }
   $saveAddress = trim($_GET["sla"]);
   $similar->setRoom_address($saveAddress);
-  $param .= "sla=".$saveAddress;
+  $param .= "sla=".urlencode($saveAddress);
 }
 if(isset($_GET["slp"]) && trim($_GET["slp"]) != "" && is_numeric($_GET["slp"])) {
   if($param != "") {
@@ -33,7 +33,7 @@ if(isset($_GET["slp"]) && trim($_GET["slp"]) != "" && is_numeric($_GET["slp"])) 
   }
   $savePrice = trim($_GET["slp"]);
   $similar->setRoom_price((float)$savePrice);
-  $param .= "slp=".$savePrice;
+  $param .= "slp=".urlencode($savePrice);
 }
 $sortType = "";
 if(isset($_GET["sort"]) && trim($_GET["sort"]) != "") {
@@ -41,7 +41,7 @@ if(isset($_GET["sort"]) && trim($_GET["sort"]) != "") {
     $param .= "&";
   }
   $sortType = trim($_GET["sort"]);
-  $param .= "sort=".$sortType;
+  $param .= "sort=".urlencode($sortType);
 }
 //Dữ liệu phân trang
 $page = 1;

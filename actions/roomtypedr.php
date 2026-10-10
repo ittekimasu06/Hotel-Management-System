@@ -1,13 +1,15 @@
 <?php
-session_start();
+require_once(__DIR__."/../libraries/Security.php");
+start_session();
+csrf_verify();
 if(!isset($_SESSION["user"])) {
-    header("location:/hostay/admin/login.php");
+    redirect("/hostay/admin/login.php");
 } else {
     if(!isset($_SESSION["user"]["permission"]) || $_SESSION["user"]["permission"] < 1) {
-        header("location:/hostay/admin/login.php?err=permis");
+        redirect("/hostay/admin/login.php?err=permis");
     } else {
         if(!isset($_GET["id"]) || $_GET["id"] <= 0 || !is_numeric($_GET["id"])) {
-            header("location:/hostay/admin/roomtypes.php?err=value");
+            redirect("/hostay/admin/roomtypes.php?err=value");
         } else {
             require_once("../app/models/RoomtypeModel.php");
             $bsm = new RoomtypeModel();
@@ -15,12 +17,12 @@ if(!isset($_SESSION["user"])) {
             if($bs != null){
                 $result = $bsm->delRoomtype($bs);
                 if($result) {
-                    header("location:/hostay/admin/roomtypes.php?suc=del");
+                    redirect("/hostay/admin/roomtypes.php?suc=del");
                 } else {
-                    header("location:/hostay/admin/roomtypes.php?err=del");
+                    redirect("/hostay/admin/roomtypes.php?err=del");
                 }
             } else {
-                header("location:/hostay/admin/roomtypes.php?err=noexist");
+                redirect("/hostay/admin/roomtypes.php?err=noexist");
             }
         }
     }

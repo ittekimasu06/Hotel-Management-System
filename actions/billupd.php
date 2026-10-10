@@ -1,10 +1,11 @@
 <?php
-session_start();
+require_once(__DIR__."/../libraries/Security.php");
+start_session();
 if(!isset($_SESSION["user"])) {
-    header("location:/hostay/admin/login.php");
+    redirect("/hostay/admin/login.php");
 } else {
     if(!isset($_SESSION["user"]["permission"]) || $_SESSION["user"]["permission"] < 1) {
-        header("location:/hostay/admin/login.php?err=permis");
+        redirect("/hostay/admin/login.php?err=permis");
     } else {
         if(isset($_POST["updSta"])) {
             if(isset($_POST["idForPost"]) && is_numeric($_POST["idForPost"])) {
@@ -31,27 +32,27 @@ if(!isset($_SESSION["user"])) {
                             if($staffName != "" && strlen($staffName) > 6) {
                                 $item->setBill_staff_name($staffName);
                             } else {
-                                header("location:/hostay/admin/bill.php?id=$id&err=lack");
+                                redirect("/hostay/admin/bill.php?id=$id&err=lack");
                             }
                         }
                         $item->setBill_is_paid($isPaid);
                         $item->setBill_static((int) $static);
                         if($bm->editBill($item)) {
-                            header("location:/hostay/admin/bill.php?id=$id&suc=upd");
+                            redirect("/hostay/admin/bill.php?id=$id&suc=upd");
                         } else {
-                            header("location:/hostay/admin/bill.php?id=$id&err=upd");
+                            redirect("/hostay/admin/bill.php?id=$id&err=upd");
                         }
                     } else {
-                        header("location:/hostay/admin/bill.php?id=$id&err=value");
+                        redirect("/hostay/admin/bill.php?id=$id&err=value");
                     }
                 } else {
-                    header("location:/hostay/admin/bills.php?err=noexist");
+                    redirect("/hostay/admin/bills.php?err=noexist");
                 }
             } else {
-                header("location:/hostay/admin/bills.php?err=notok");
+                redirect("/hostay/admin/bills.php?err=notok");
             }
         } else {
-            header("location:/hostay/admin/bills.php");
+            redirect("/hostay/admin/bills.php");
         }
     }
 }

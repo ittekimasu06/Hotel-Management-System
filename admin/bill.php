@@ -1,10 +1,11 @@
 <?php
-session_start();
+require_once(__DIR__."/../libraries/Security.php");
+start_session();
 if(!isset($_SESSION["user"])) {
-    header("location:/hostay/admin/login.php");
+    redirect("/hostay/admin/login.php");
 } else {
     if(!isset($_SESSION["user"]["permission"]) || $_SESSION["user"]["permission"] < 1) {
-        header("location:/hostay/admin/login.php?err=permis");
+        redirect("/hostay/admin/login.php?err=permis");
     }
 }
 //
@@ -12,7 +13,7 @@ $_SESSION["pos"] = "bill";
 $_SESSION["active"] = "bilist";
 //
 if(!isset($_GET["id"]) || !is_numeric($_GET["id"]) || $_GET["id"] < 1) {
-    header("location:/hostay/admin/bills.php");
+    redirect("/hostay/admin/bills.php");
 }
 //
 require_once("../app/models/BillModel.php");
@@ -23,7 +24,7 @@ $id = $_GET["id"];
 $bm = new BillModel();
 $bill = $bm->getBill($id);
 if($bill == null) {
-    header("location:/hostay/admin/bills.php?err=noexist");
+    redirect("/hostay/admin/bills.php?err=noexist");
 }
 
 $diff = getDateDiff($bill->getBill_start_date(), $bill->getBill_end_date());
@@ -68,22 +69,22 @@ require_once("layouts/Toast.php");
                                 } else {
                             ?>
                                 <div class="col-sm-12 mb-3 room-img-container">
-                                    <img src="<?=$room->getRoom_image()?>" class="room-img" alt="">
+                                    <img src="<?=e($room->getRoom_image())?>" class="room-img" alt="">
                                 </div>
                                 <div class="col-md-6 row mb-3">
                                     <div class="col-sm-12 fw-bold">Tên khách sạn</div>
-                                    <div class="col-sm-12"><?=$room->getRoom_hotel_name()?></div>
+                                    <div class="col-sm-12"><?=e($room->getRoom_hotel_name())?></div>
                                 </div>
                                 <div class="col-md-6 row mb-3">
                                     <div class="col-sm-12 fw-bold">Loại phòng</div>
-                                    <div class="col-sm-12"><?=$room->getRoomtype_name()?></div>
+                                    <div class="col-sm-12"><?=e($room->getRoomtype_name())?></div>
                                 </div>
                                 <div class="col-sm-12 row mb-3">
                                     <div class="col-sm-12 fw-bold">Địa chỉ</div>
-                                    <div class="col-sm-12"><?=$room->getRoom_address()?></div>
+                                    <div class="col-sm-12"><?=e($room->getRoom_address())?></div>
                                 </div>
                                 <div class="col-sm-12 mb-3">
-                                    <a href="/hostay/views/room.php?id=<?=$room->getRoom_id()?>">
+                                    <a href="/hostay/views/room.php?id=<?=e($room->getRoom_id())?>">
                                         Click để xem chi tiết.
                                     </a>
                                 </div>
@@ -95,32 +96,32 @@ require_once("layouts/Toast.php");
                         <!-- Start bill detail -->
                         <div class="row mb-3">
                             <div class="col-md-12">
-                                <a href="/hostay/views/ticket.php?id=<?=$bill->getBill_id()?>">Xem phiếu xác nhận.</a>
+                                <a href="/hostay/views/ticket.php?id=<?=e($bill->getBill_id())?>">Xem phiếu xác nhận.</a>
                             </div>
                         </div>
                         <div class="row mb-3">
                             <div class="col-md-3 fw-bold">Họ và tên</div>
-                            <div class="col-md-9"><?=$bill->getBill_fullname()?></div>
+                            <div class="col-md-9"><?=e($bill->getBill_fullname())?></div>
                         </div>
                         <div class="row mb-3">
                             <div class="col-md-3 fw-bold">Email</div>
-                            <div class="col-md-9"><?=$bill->getBill_email()?></div>
+                            <div class="col-md-9"><?=e($bill->getBill_email())?></div>
                         </div>
                         <div class="row mb-3">
                             <div class="col-md-3 fw-bold">Số điện thoại</div>
-                            <div class="col-md-9"><?=$bill->getBill_phone()?></div>
+                            <div class="col-md-9"><?=e($bill->getBill_phone())?></div>
                         </div>
                         <div class="row mb-3">
                             <div class="col-md-3 fw-bold">Số phòng</div>
-                            <div class="col-md-9"><?=$bill->getBill_number_room()?></div>
+                            <div class="col-md-9"><?=e($bill->getBill_number_room())?></div>
                         </div>
                         <div class="row mb-3">
                             <div class="col-md-3 fw-bold">Số người trưởng thành</div>
-                            <div class="col-md-9"><?=$bill->getBill_number_adult()?></div>
+                            <div class="col-md-9"><?=e($bill->getBill_number_adult())?></div>
                         </div>
                         <div class="row mb-3">
                             <div class="col-md-3 fw-bold">Số trẻ nhỏ</div>
-                            <div class="col-md-9"><?=$bill->getBill_number_children()?></div>
+                            <div class="col-md-9"><?=e($bill->getBill_number_children())?></div>
                         </div>
                         <div class="row mb-3">
                             <div class="col-md-3 fw-bold">Ngày tạo</div>
@@ -140,9 +141,10 @@ require_once("layouts/Toast.php");
                         </div>
                         <div class="row mb-3">
                             <div class="col-sm-12 fw-bold">Ghi chú</div>
-                            <div class="col-sm-12"><?=$bill->getBill_notes()?></div>
+                            <div class="col-sm-12"><?=e($bill->getBill_notes())?></div>
                         </div>
                         <form action="/hostay/actions/billupd.php" method="post" class="needs-validation" novalidate>
+                            <?=csrf_field()?>
                             <div class="row mb-3">
                                 <label class="col-md-3 fw-bold" for="slcSta">Thanh toán</label>
                                 <div class="col-md-9">
@@ -165,11 +167,11 @@ require_once("layouts/Toast.php");
                                             $bsm = new BillstaticModel();
                                             $statics = $bsm->getBillstatics(new BillstaticObject,1, 100);
                                             foreach($statics as $bs) {
-                                                $out = '<option value="'.$bs->getBillstatic_id().'" ';
+                                                $out = '<option value="'.e($bs->getBillstatic_id()).'" ';
                                                 if($bs->getBillstatic_id() == $bill->getBill_static()) {
                                                     $out .= 'selected';
                                                 }
-                                                $out .= '>'.$bs->getBillstatic_name().'</option>';
+                                                $out .= '>'.e($bs->getBillstatic_name()).'</option>';
                                                 echo $out;
                                             }
                                         ?>
@@ -184,7 +186,7 @@ require_once("layouts/Toast.php");
                                     ?>
                                         <input type="text"
                                             class="form-control"
-                                            value="<?=$bill->getBill_staff_name()?>"
+                                            value="<?=e($bill->getBill_staff_name())?>"
                                             disabled>
                                     <?php
                                         } else {
@@ -200,7 +202,7 @@ require_once("layouts/Toast.php");
                                     ?>
                                 </div>
                             </div>
-                            <input type="hidden" name="idForPost" value="<?=$bill->getBill_id()?>">
+                            <input type="hidden" name="idForPost" value="<?=e($bill->getBill_id())?>">
                             <div class="mb-3 d-flex justify-content-center">
                                 <button class="btn btn-primary disabled btn-updsta mx-3"
                                     type="submit"
@@ -210,7 +212,7 @@ require_once("layouts/Toast.php");
                                 <?php
                                     if($bill->getBill_cancel() == 0) {
                                 ?>
-                                    <a href="/hostay/actions/billcl.php?id=<?=$bill->getBill_id()?>"
+                                    <a href="/hostay/actions/billcl.php?id=<?=e($bill->getBill_id())?>&_token=<?=csrf_token()?>"
                                             class="btn btn-danger mx-3">
                                             Hủy đơn
                                         </a>
@@ -232,14 +234,14 @@ require_once("layouts/Toast.php");
     let slc2 = document.querySelector("#slcPaid");
     let btnsta = document.querySelector(".btn-updsta");
     slc1.addEventListener("change", () => {
-        if(slc1.value == <?=$bill->getBill_static()?> && slc2.value == <?=$bill->getBill_is_paid()?>) {
+        if(slc1.value == <?=e($bill->getBill_static())?> && slc2.value == <?=e($bill->getBill_is_paid())?>) {
             btnsta.classList.add("disabled");
         } else {
             btnsta.classList.remove("disabled");
         }
     });
     slc2.addEventListener("change", () => {
-        if(slc1.value == <?=$bill->getBill_static()?> && slc2.value == <?=$bill->getBill_is_paid()?>) {
+        if(slc1.value == <?=e($bill->getBill_static())?> && slc2.value == <?=e($bill->getBill_is_paid())?>) {
             btnsta.classList.add("disabled");
         } else {
             btnsta.classList.remove("disabled");

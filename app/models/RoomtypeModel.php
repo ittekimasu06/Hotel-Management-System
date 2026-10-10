@@ -43,9 +43,9 @@ class RoomtypeModel extends BasicModel {
     function getRoomtype($id) {
         $item = null;
         $sql = "SELECT * FROM tblroomtype ";
-        $sql .= "WHERE roomtype_id=$id";
-        $result = $this->get($sql);
-        if($result->num_rows > 0) {
+        $sql .= "WHERE roomtype_id=?";
+        $result = $this->getV2($sql, "i", [(int) $id]);
+        if($result && $result->num_rows > 0) {
             $item = $result->fetch_object("RoomtypeObject");
         }
         return $item;
@@ -53,22 +53,20 @@ class RoomtypeModel extends BasicModel {
 
     function getRoomtypes(RoomtypeObject $similar, $page, $total) : array {
         $list = array();
+        $page = (int) $page;
+        $total = (int) $total;
         if($page <= 0) {
             $page = 1;
         }
         $at = ($page - 1) * $total;
         $sql = "SELECT * FROM tblroomtype ";
         $sql .= "ORDER BY roomtype_id ASC ";
-        $sql .= "LIMIT $at, $total;";
-        try {
-            $result = $this->get($sql);
-            if($result->num_rows > 0) {
-                while($item = $result->fetch_object('RoomtypeObject')) {
-                    array_push($list, $item);
-                }
+        $sql .= "LIMIT ?, ?;";
+        $result = $this->getV2($sql, "ii", [$at, $total]);
+        if($result && $result->num_rows > 0) {
+            while($item = $result->fetch_object('RoomtypeObject')) {
+                array_push($list, $item);
             }
-        } catch(Exception $e) {
-            exit($sql."</br>".$e->getMessage()."</br>".$e->getTraceAsString());
         }
         return $list;
     }

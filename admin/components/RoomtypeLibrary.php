@@ -24,26 +24,26 @@ function RoomtypeTable($items) {
 
 function RoomtypeRow(RoomtypeObject $item) {
     $out = '<tr>';
-    $out .= '<th scope="row" class="align-middle">'.$item->getRoomtype_id().'</th>';
-    $out .= '<td scope="row" class="align-middle">'.$item->getRoomtype_name().'</td>';
-    $out .= '<td scope="row" class="align-middle">'.$item->getRoomtype_notes().'</td>';
+    $out .= '<th scope="row" class="align-middle">'.e($item->getRoomtype_id()).'</th>';
+    $out .= '<td scope="row" class="align-middle">'.e($item->getRoomtype_name()).'</td>';
+    $out .= '<td scope="row" class="align-middle">'.e($item->getRoomtype_notes()).'</td>';
     //detail
     $out .= '<td class="align-middle" width="1">
-    <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#viewRoomtype'.$item->getRoomtype_id().'">
+    <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#viewRoomtype'.e($item->getRoomtype_id()).'">
         <i class="bi bi-eye"></i>
     </button>';
     $out .= viewDetail($item);
     $out .= '</td>';
     //edit
     $out .= '<td class="align-middle" width="1">
-    <button class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#editRoomtype'.$item->getRoomtype_id().'">
+    <button class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#editRoomtype'.e($item->getRoomtype_id()).'">
         <i class="bi bi-pencil-square"></i>
     </button>';
     $out .= viewEdit($item);
     $out .= '</td>';
     //del
     $out .= '<td class="align-middle" width="1">
-    <button class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#delRoomtype'.$item->getRoomtype_id().'">
+    <button class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#delRoomtype'.e($item->getRoomtype_id()).'">
         <i class="bi bi-trash"></i>
     </button>';
     $out .= viewDel($item);
@@ -54,7 +54,7 @@ function RoomtypeRow(RoomtypeObject $item) {
 
 function viewDetail($item) {
     $out = '<div class="modal fade"
-        id="viewRoomtype'.$item->getRoomtype_id().'"
+        id="viewRoomtype'.e($item->getRoomtype_id()).'"
         data-bs-keyboard="false"
         tabindex="-1" aria-labelledby="staticBackdropLabel"
         aria-hidden="true">';
@@ -66,11 +66,11 @@ function viewDetail($item) {
     $out .= '</div><div class="modal-body">';
     $out .= '<div class="row mt-3">
                 <div class="col-sm-12 fw-bold">Tên loại</div>
-                <div class="col-sm-12">'.$item->getRoomtype_name().'</div>
+                <div class="col-sm-12">'.e($item->getRoomtype_name()).'</div>
             </div>';
     $out .= '<div class="row mt-3">
                 <div class="col-sm-12 fw-bold">Ghi chú</div>
-                <div class="col-sm-12">'.$item->getRoomtype_notes().'</div>
+                <div class="col-sm-12">'.e($item->getRoomtype_notes()).'</div>
             </div>';
     $out .= '</div><div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Thoát</button>
@@ -81,11 +81,12 @@ function viewDetail($item) {
 
 function viewEdit($item) {
     $out = '<div class="modal fade"
-        id="editRoomtype'.$item->getRoomtype_id().'"
+        id="editRoomtype'.e($item->getRoomtype_id()).'"
         data-bs-keyboard="false"
         tabindex="-1" aria-labelledby="staticBackdropLabel"
         aria-hidden="true">';
     $out .= '<form action="/hostay/actions/roomtypeupd.php" method="post" class="needs-validation" novalidate>';
+    $out .= csrf_field();
     $out .= '<div class="modal-dialog">';
     $out .= '<div class="modal-content">';
     $out .= '<div class="modal-header">';
@@ -96,17 +97,17 @@ function viewEdit($item) {
     $out .= '<div class="row mt-3">
                 <label class="col-sm-12 col-form-label fw-bold">Tên loại</label>
                 <div class="col-sm-12">
-                    <input type="text" class="form-control" name="txtName" value="'.$item->getRoomtype_name().'" required>
+                    <input type="text" class="form-control" name="txtName" value="'.e($item->getRoomtype_name()).'" required>
                     <div class="invalid-feedback">Hãy nhập tên loại</div>
                 </div>
             </div>';
     $out .= '<div class="row mt-3">
                 <label class="col-sm-12 col-form-label fw-bold">Ghi chú</label>
                 <div class="col-sm-12">
-                    <textarea class="form-control" name="txtNotes" rows="10">'.$item->getRoomtype_notes().'</textarea>
+                    <textarea class="form-control" name="txtNotes" rows="10">'.e($item->getRoomtype_notes()).'</textarea>
                 </div>
             </div>';
-    $out .= '<input type="hidden" name="idForPost" value="'.$item->getRoomtype_id().'">';
+    $out .= '<input type="hidden" name="idForPost" value="'.e($item->getRoomtype_id()).'">';
     $out .= '</div>';//body
     $out .= '<div class="modal-footer">
                 <button type="submit" class="btn btn-success">Cập nhật</button>
@@ -122,7 +123,7 @@ function viewEdit($item) {
 
 function viewDel($item) {
     $out = '<div class="modal fade"
-        id="delRoomtype'.$item->getRoomtype_id().'"
+        id="delRoomtype'.e($item->getRoomtype_id()).'"
         data-bs-backdrop="static" data-bs-keyboard="false"
         tabindex="-1" aria-labelledby="staticBackdropLabel"
         aria-hidden="true">';
@@ -133,10 +134,10 @@ function viewDel($item) {
     $out .= '<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>';
     $out .= '</div><div class="modal-body">';
     $out .= '<p>Bạn có chắc chắn muốn xóa loại này:</p>';
-    $out .= '<p><b>Tên loại: </b>'.$item->getRoomtype_name().'</p>';
+    $out .= '<p><b>Tên loại: </b>'.e($item->getRoomtype_name()).'</p>';
     $out .= '</div><div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" name="exitDel">Thoát</button>
-                <a href="/hostay/actions/roomtypedr.php?id='.$item->getRoomtype_id().'" class="btn btn-danger">Xóa</a>
+                <a href="/hostay/actions/roomtypedr.php?id='.e($item->getRoomtype_id()).'&_token='.csrf_token().'" class="btn btn-danger">Xóa</a>
             </div></div></div></div>';
     return $out;
 }
@@ -148,6 +149,7 @@ function viewAdd() {
         tabindex="-1" aria-labelledby="staticBackdropLabel"
         aria-hidden="true">';
     $out .= '<form action="/hostay/actions/roomtypeadd.php" method="post" class="needs-validation" novalidate>';
+    $out .= csrf_field();
     $out .= '<div class="modal-dialog">';
     $out .= '<div class="modal-content">';
     $out .= '<div class="modal-header">';

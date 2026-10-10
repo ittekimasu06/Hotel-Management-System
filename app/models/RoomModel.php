@@ -96,9 +96,9 @@ class RoomModel extends BasicModel {
         $sql = "SELECT * FROM tblroom
          LEFT JOIN tblroomtype
          ON tblroom.room_type_id = tblroomtype.roomtype_id
-         WHERE room_id=$id";
-        $result = $this->get($sql);
-        if($result->num_rows > 0) {
+         WHERE room_id=?";
+        $result = $this->getV2($sql, "i", [(int) $id]);
+        if($result && $result->num_rows > 0) {
             $item = $result->fetch_object('RoomObject');
         }
         return $item;
@@ -106,13 +106,16 @@ class RoomModel extends BasicModel {
 
     function getRooms(RoomObject $similar, $page, $total, $sort_type = "lastest") : array {
         $list = array();
+        $page = (int) $page;
+        $total = (int) $total;
         if($page <= 0) {
             $page = 1;
         }
         $at = ($page - 1) * $total;
+        [$where, $types, $params] = $this->createConditions($similar);
         $sql = "SELECT * FROM tblroom LEFT JOIN tblroomtype
          ON tblroom.room_type_id = tblroomtype.roomtype_id ";
-        $sql .= $this->createConditions($similar);
+        $sql .= $where;
         switch($sort_type) {
             case "pricet":
                 $sql .= "ORDER BY room_price ASC ";
@@ -124,70 +127,62 @@ class RoomModel extends BasicModel {
                 $sql .= "ORDER BY room_id DESC ";
                 break;
         }
-        $sql .= "LIMIT $at, $total;";
-        try {
-            $result = $this->get($sql);
-            if($result->num_rows > 0) {
-                while($item = $result->fetch_object('RoomObject')) {
-                    array_push($list, $item);
-                }
+        $sql .= "LIMIT ?, ?;";
+        $result = $this->getV2($sql, $types."ii", [...$params, $at, $total]);
+        if($result && $result->num_rows > 0) {
+            while($item = $result->fetch_object('RoomObject')) {
+                array_push($list, $item);
             }
-        } catch(Exception $e) {
-            exit($sql."</br>".$e->getMessage()."</br>".$e->getTraceAsString());
         }
         return $list;
     }
 
     function countRoom(RoomObject $similar) : int {
+        [$where, $types, $params] = $this->createConditions($similar);
         $sql = "SELECT COUNT(*) AS total FROM tblroom ";
-        $sql .= $this->createConditions($similar);
+        $sql .= $where;
         $sql .= ";";
         $total = 0;
-        try {
-            if($result = $this->get($sql)){
-                if($row = $result->fetch_array()) {
-                    $total = $row[0];
-                }
+        if($result = $this->getV2($sql, $types, $params)){
+            if($row = $result->fetch_array()) {
+                $total = $row[0];
             }
-        } catch(Exception $e) {
-            exit($sql."</br>".$e->getMessage()."</br>".$e->getTraceAsString());
         }
         return $total;
     }
 
-    private function createConditions(RoomObject $similar) {
-        $out = "";
+    /**
+     * @return array [mệnh đề WHERE, kiểu tham số, mảng tham số]
+     */
+    private function createConditions(RoomObject $similar) : array {
+        $conds = [];
+        $types = "";
+        $params = [];
         if($similar->getRoom_hotel_name() != null) {
-            $key = $similar->getRoom_hotel_name();
-            $out .= "(room_hotel_name LIKE '%$key%')
-                     OR (room_address LIKE '%$key%')
-                     OR (room_bed_type LIKE '%$key%') ";
+            $key = $this->likeParam($similar->getRoom_hotel_name());
+            $conds[] = "((room_hotel_name LIKE ?)
+                     OR (room_address LIKE ?)
+                     OR (room_bed_type LIKE ?)) ";
+            $types .= "sss";
+            array_push($params, $key, $key, $key);
         }
         if($similar->getRoom_type_id() != null) {
-            if($out != "") {
-                $out .= " AND ";
-            }
-            $type = $similar->getRoom_type_id();
-            $out .= "(room_type_id = $type) ";
+            $conds[] = "(room_type_id = ?) ";
+            $types .= "i";
+            $params[] = (int) $similar->getRoom_type_id();
         }
         if($similar->getRoom_address() != null) {
-            if($out != "") {
-                $out .= " AND ";
-            }
-            $address = $similar->getRoom_address();
-            $out .= "(room_address LIKE '%$address%') ";
+            $conds[] = "(room_address LIKE ?) ";
+            $types .= "s";
+            $params[] = $this->likeParam($similar->getRoom_address());
         }
         if($similar->getRoom_price() != null) {
-            if($out != "") {
-                $out .= " AND ";
-            }
-            $price = $similar->getRoom_price();
-            $out .= "(room_price < $price) ";
+            $conds[] = "(room_price < ?) ";
+            $types .= "d";
+            $params[] = (float) $similar->getRoom_price();
         }
-        if($out != "") {
-            $out = "WHERE ".$out;
-        }
-        return $out;
+        $where = count($conds) > 0 ? "WHERE ".implode(" AND ", $conds) : "";
+        return [$where, $types, $params];
     }
 
 }

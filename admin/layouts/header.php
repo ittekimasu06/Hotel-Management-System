@@ -60,7 +60,7 @@
 
     <div class="search-bar">
       <form class="search-form d-flex align-items-center" method="get" action="">
-        <input type="text" name="key" placeholder="Search" title="Enter search keyword" value="<?=$key?>">
+        <input type="text" name="key" placeholder="Search" title="Enter search keyword" value="<?=e($key)?>">
         <button type="submit" title="Search"><i class="bi bi-search"></i></button>
       </form>
     </div><!-- End Search Bar -->
@@ -160,8 +160,8 @@
 
           <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow profile">
             <li class="dropdown-header">
-              <h6><?=$_SESSION["user"]["fullname"]?></h6>
-              <span><?=$_SESSION["user"]["name"]?></span>
+              <h6><?=e($_SESSION["user"]["fullname"])?></h6>
+              <span><?=e($_SESSION["user"]["name"])?></span>
             </li>
             <li>
               <hr class="dropdown-divider">

@@ -1,7 +1,6 @@
 <?php
-if(session_id() === "") {
-    session_start();
-}
+require_once(__DIR__."/../../libraries/Security.php");
+start_session();
 $active = "home";
 $title = "Hostay";
 $uri = $_SERVER["REQUEST_URI"];
@@ -129,8 +128,8 @@ if(str_contains($uri, "/views/histories")) {
 
                 <ul class="dropdown-menu dropdown-menu-end profile">
                     <li class="dropdown-header">
-                    <h6><?=$_SESSION["user"]["fullname"]?></h6>
-                    <span><?=$_SESSION["user"]["name"]?></span>
+                    <h6><?=e($_SESSION["user"]["fullname"])?></h6>
+                    <span><?=e($_SESSION["user"]["name"])?></span>
                     </li>
                     <li>
                         <hr class="dropdown-divider">

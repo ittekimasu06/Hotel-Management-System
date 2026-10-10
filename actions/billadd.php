@@ -1,10 +1,11 @@
 <?php
-session_start();
+require_once(__DIR__."/../libraries/Security.php");
+start_session();
 if(!isset($_SESSION["user"])) {
-    header("location:/hostay/views/login.php");
+    redirect("/hostay/views/login.php");
 } else {
     if(!isset($_SESSION["user"]["id"])) {
-        header("location:/hostay/views/login.php?err=login");
+        redirect("/hostay/views/login.php?err=login");
     } else {
         if(isset($_POST["idForPost"]) && is_numeric($_POST["idForPost"])) {
             require_once("../app/models/RoomModel.php");
@@ -32,19 +33,19 @@ if(!isset($_SESSION["user"])) {
                 && $start != ""
                 && $end != "") {
                     if(!is_numeric($numRoom) || $numRoom < 1 || $numRoom > 5) {
-                        header("location:/hostay/views/room.php?id=$id&err=nr");
+                        redirect("/hostay/views/room.php?id=$id&err=nr");
                     } else {
                         if(!is_numeric($numAdult) || $numAdult < 0 || $numAdult > 10) {
-                            header("location:/hostay/views/room.php?id=$id&err=na");
+                            redirect("/hostay/views/room.php?id=$id&err=na");
                         } else {
                             if(!is_numeric($numChild) || $numChild < 0 || $numChild > 10) {
-                                header("location:/hostay/views/room.php?id=$id&err=nc");
+                                redirect("/hostay/views/room.php?id=$id&err=nc");
                             } else {
                                 if($numAdult == 0 && $numChild == 0) {
-                                    header("location:/hostay/views/room.php?id=$id&err=np");
+                                    redirect("/hostay/views/room.php?id=$id&err=np");
                                 } else {
                                     if(!checkValidDate($start, $end)) {
-                                        header("location:/hostay/views/room.php?id=$id&err=date");
+                                        redirect("/hostay/views/room.php?id=$id&err=date");
                                     } else {
                                         $bm = new BillModel();
                                         $item = new BillObject();
@@ -66,12 +67,12 @@ if(!isset($_SESSION["user"])) {
                                             $newBill = $bm->getNewBill($item->getBill_customer_id());
                                             if($newBill != null) {
                                                 $newbill_id = $newBill->getBill_id();
-                                                header("location:/hostay/views/ticket.php?id=$newbill_id");
+                                                redirect("/hostay/views/ticket.php?id=$newbill_id");
                                             } else {
-                                                header("location:/hostay/views/room.php?id=$id&suc=bia");
+                                                redirect("/hostay/views/room.php?id=$id&suc=bia");
                                             }
                                         } else {
-                                            header("location:/hostay/views/room.php?id=$id&err=bia");
+                                            redirect("/hostay/views/room.php?id=$id&err=bia");
                                         }
                                     }
                                 }
@@ -79,13 +80,13 @@ if(!isset($_SESSION["user"])) {
                         }
                     }
                 } else {
-                    header("location:/hostay/views/room.php?id=$id&err=lack");
+                    redirect("/hostay/views/room.php?id=$id&err=lack");
                 }
             } else {
-                header("location:/hostay/views/rooms.php?err=noexistr");
+                redirect("/hostay/views/rooms.php?err=noexistr");
             }
         } else {
-            header("location:/hostay/views/rooms.php?err=value");
+            redirect("/hostay/views/rooms.php?err=value");
         }
     }
 }

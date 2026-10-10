@@ -24,26 +24,26 @@ function BillstaticTable($items) {
 
 function BillstaticRow(BillstaticObject $item) {
     $out = '<tr>';
-    $out .= '<th scope="row" class="align-middle">'.$item->getBillstatic_id().'</th>';
-    $out .= '<td scope="row" class="align-middle">'.$item->getBillstatic_name().'</td>';
-    $out .= '<td scope="row" class="align-middle">'.$item->getBillstatic_notes().'</td>';
+    $out .= '<th scope="row" class="align-middle">'.e($item->getBillstatic_id()).'</th>';
+    $out .= '<td scope="row" class="align-middle">'.e($item->getBillstatic_name()).'</td>';
+    $out .= '<td scope="row" class="align-middle">'.e($item->getBillstatic_notes()).'</td>';
     //detail
     $out .= '<td class="align-middle">
-    <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#viewBillstatic'.$item->getBillstatic_id().'">
+    <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#viewBillstatic'.e($item->getBillstatic_id()).'">
         <i class="bi bi-eye"></i>
     </button>';
     $out .= viewDetail($item);
     $out .= '</td>';
     //edit
     $out .= '<td class="align-middle">
-    <button class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#editBillstatic'.$item->getBillstatic_id().'">
+    <button class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#editBillstatic'.e($item->getBillstatic_id()).'">
         <i class="bi bi-pencil-square"></i>
     </button>';
     $out .= viewEdit($item);
     $out .= '</td>';
     //del
     $out .= '<td class="align-middle">
-    <button class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#delBillstatic'.$item->getBillstatic_id().'">
+    <button class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#delBillstatic'.e($item->getBillstatic_id()).'">
         <i class="bi bi-trash"></i>
     </button>';
     $out .= viewDel($item);
@@ -54,7 +54,7 @@ function BillstaticRow(BillstaticObject $item) {
 
 function viewDetail($item) {
     $out = '<div class="modal fade"
-        id="viewBillstatic'.$item->getBillstatic_id().'"
+        id="viewBillstatic'.e($item->getBillstatic_id()).'"
         data-bs-keyboard="false"
         tabindex="-1" aria-labelledby="staticBackdropLabel"
         aria-hidden="true">';
@@ -66,11 +66,11 @@ function viewDetail($item) {
     $out .= '</div><div class="modal-body">';
     $out .= '<div class="row mt-3">
                 <div class="col-sm-12 fw-bold">Tên trạng thái</div>
-                <div class="col-sm-12">'.$item->getBillstatic_name().'</div>
+                <div class="col-sm-12">'.e($item->getBillstatic_name()).'</div>
             </div>';
     $out .= '<div class="row mt-3">
                 <div class="col-sm-12 fw-bold">Ghi chú</div>
-                <div class="col-sm-12">'.$item->getBillstatic_notes().'</div>
+                <div class="col-sm-12">'.e($item->getBillstatic_notes()).'</div>
             </div>';
     $out .= '</div><div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Thoát</button>
@@ -81,11 +81,12 @@ function viewDetail($item) {
 
 function viewEdit($item) {
     $out = '<div class="modal fade"
-        id="editBillstatic'.$item->getBillstatic_id().'"
+        id="editBillstatic'.e($item->getBillstatic_id()).'"
         data-bs-keyboard="false"
         tabindex="-1" aria-labelledby="staticBackdropLabel"
         aria-hidden="true">';
     $out .= '<form action="/hostay/actions/billstaticupd.php" method="post" class="needs-validation" novalidate>';
+    $out .= csrf_field();
     $out .= '<div class="modal-dialog">';
     $out .= '<div class="modal-content">';
     $out .= '<div class="modal-header">';
@@ -96,17 +97,17 @@ function viewEdit($item) {
     $out .= '<div class="row mt-3">
                 <label class="col-sm-12 col-form-label fw-bold">Tên trạng thái</label>
                 <div class="col-sm-12">
-                    <input type="text" class="form-control" name="txtName" value="'.$item->getBillstatic_name().'" required>
+                    <input type="text" class="form-control" name="txtName" value="'.e($item->getBillstatic_name()).'" required>
                     <div class="invalid-feedback">Hãy nhập tên trạng thái</div>
                 </div>
             </div>';
     $out .= '<div class="row mt-3">
                 <label class="col-sm-12 col-form-label fw-bold">Ghi chú</label>
                 <div class="col-sm-12">
-                    <textarea class="form-control" name="txtNotes" rows="10">'.$item->getBillstatic_notes().'</textarea>
+                    <textarea class="form-control" name="txtNotes" rows="10">'.e($item->getBillstatic_notes()).'</textarea>
                 </div>
             </div>';
-    $out .= '<input type="hidden" name="idForPost" value="'.$item->getBillstatic_id().'">';
+    $out .= '<input type="hidden" name="idForPost" value="'.e($item->getBillstatic_id()).'">';
     $out .= '</div>';//body
     $out .= '<div class="modal-footer">
                 <button type="submit" class="btn btn-success">Cập nhật</button>
@@ -122,7 +123,7 @@ function viewEdit($item) {
 
 function viewDel($item) {
     $out = '<div class="modal fade"
-        id="delBillstatic'.$item->getBillstatic_id().'"
+        id="delBillstatic'.e($item->getBillstatic_id()).'"
         data-bs-backdrop="static" data-bs-keyboard="false"
         tabindex="-1" aria-labelledby="staticBackdropLabel"
         aria-hidden="true">';
@@ -133,10 +134,10 @@ function viewDel($item) {
     $out .= '<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>';
     $out .= '</div><div class="modal-body">';
     $out .= '<p>Bạn có chắc chắn muốn xóa trạng thái này:</p>';
-    $out .= '<p><b>Tên trạng thái: </b>'.$item->getBillstatic_name().'</p>';
+    $out .= '<p><b>Tên trạng thái: </b>'.e($item->getBillstatic_name()).'</p>';
     $out .= '</div><div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" name="exitDel">Thoát</button>
-                <a href="/hostay/actions/billstaticdr.php?id='.$item->getBillstatic_id().'" class="btn btn-danger">Xóa</a>
+                <a href="/hostay/actions/billstaticdr.php?id='.e($item->getBillstatic_id()).'&_token='.csrf_token().'" class="btn btn-danger">Xóa</a>
             </div></div></div></div>';
     return $out;
 }
@@ -148,6 +149,7 @@ function viewAdd() {
         tabindex="-1" aria-labelledby="staticBackdropLabel"
         aria-hidden="true">';
     $out .= '<form action="/hostay/actions/billstaticadd.php" method="post" class="needs-validation" novalidate>';
+    $out .= csrf_field();
     $out .= '<div class="modal-dialog">';
     $out .= '<div class="modal-content">';
     $out .= '<div class="modal-header">';

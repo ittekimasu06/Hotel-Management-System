@@ -27,7 +27,7 @@
                                 $rtm = new RoomtypeModel();
                                 $roomtypes = $rtm->getRoomtypes(new RoomtypeObject(), 1, 100);
                                 foreach($roomtypes as $type) {
-                                    echo '<option value="'.$type->getRoomtype_id().'">'.$type->getRoomtype_name().'</option>';
+                                    echo '<option value="'.e($type->getRoomtype_id()).'">'.e($type->getRoomtype_name()).'</option>';
                                 }
                             ?>
                         </select>

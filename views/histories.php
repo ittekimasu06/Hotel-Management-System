@@ -1,7 +1,8 @@
 <?php
-session_start();
+require_once(__DIR__."/../libraries/Security.php");
+start_session();
 if(!isset($_SESSION["user"]) || !isset($_SESSION["user"]["id"])) {
-    header("location:/hostay/views");
+    redirect("/hostay/views");
 }
 $_REQUEST["pos"] = "";
 //
@@ -12,7 +13,7 @@ $um = new UserModel();
 //Lấy thông tin User
 $user = $um->getUserById($_SESSION["user"]["id"]);
 if($user == null) {
-    header("location:/hostay/views/login.php?err=notok");
+    redirect("/hostay/views/login.php?err=notok");
 }
 
 $bm = new BillModel();
@@ -47,7 +48,7 @@ require_once("layouts/Toaster.php");
                     ">
                     <div class="history-infor d-flex align-items-center">
                         <a data-bs-toggle="collapse"
-                            href="#multiCollapseExample<?=$bill->getBill_id()?>"
+                            href="#multiCollapseExample<?=e($bill->getBill_id())?>"
                             role="button" aria-expanded="false"
                             aria-controls="multiCollapseExample1">
                             <i class="bi bi-chevron-down me-1"></i>
@@ -64,7 +65,7 @@ require_once("layouts/Toaster.php");
                         <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
                             <li>
                                 <a class="dropdown-item py-0"
-                                    href="/hostay/views/ticket.php?id=<?=$bill->getBill_id()?>">
+                                    href="/hostay/views/ticket.php?id=<?=e($bill->getBill_id())?>">
                                     Xem hóa đơn
                                 </a>
                             </li>
@@ -114,7 +115,7 @@ require_once("layouts/Toaster.php");
                                             data-bs-dismiss="modal">
                                             Thoát
                                         </button>
-                                        <a href="/hostay/actions/billcl.php?id=<?=$bill->getBill_id()?>"
+                                        <a href="/hostay/actions/billcl.php?id=<?=e($bill->getBill_id())?>&_token=<?=csrf_token()?>"
                                             class="btn btn-danger">
                                             Hủy đơn
                                         </a>
@@ -127,24 +128,24 @@ require_once("layouts/Toaster.php");
                 <div class="row py-2">
                     <div class="col-12">
                         <div class="collapse multi-collapse"
-                        id="multiCollapseExample<?=$bill->getBill_id()?>">
+                        id="multiCollapseExample<?=e($bill->getBill_id())?>">
                             <div class="card card-body mb-3">
                                 <div class="row mb-2">
                                     <div class="col-md-3 fw-bold">Họ tên:</div>
                                     <div class="col-md-9">
-                                        <?=$bill->getBill_fullname()?>
+                                        <?=e($bill->getBill_fullname())?>
                                     </div>
                                 </div>
                                 <div class="row mb-2">
                                     <div class="col-md-3 fw-bold">Số điện thoại:</div>
                                     <div class="col-md-9">
-                                        <?=$bill->getBill_phone()?>
+                                        <?=e($bill->getBill_phone())?>
                                     </div>
                                 </div>
                                 <div class="row mb-2">
                                     <div class="col-md-3 fw-bold">Email:</div>
                                     <div class="col-md-9">
-                                        <?=$bill->getBill_email()?>
+                                        <?=e($bill->getBill_email())?>
                                     </div>
                                 </div>
                                 <div class="row mb-2">
@@ -162,7 +163,7 @@ require_once("layouts/Toaster.php");
                                 <div class="row mb-2">
                                     <div class="col-md-3 fw-bold">Trạng thái:</div>
                                     <div class="col-md-9">
-                                        <?=$bill->getBillstatic_name()?>
+                                        <?=e($bill->getBillstatic_name())?>
                                     </div>
                                 </div>
                                 <div class="row mb-2">

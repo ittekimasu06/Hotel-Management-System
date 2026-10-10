@@ -1,10 +1,11 @@
 <?php
-session_start();
+require_once(__DIR__."/../libraries/Security.php");
+start_session();
 if(!isset($_SESSION["user"])) {
-    header("location:/hostay/admin/login.php");
+    redirect("/hostay/admin/login.php");
 } else {
     if(!isset($_SESSION["user"]["permission"]) || $_SESSION["user"]["permission"] < 1) {
-        header("location:/hostay/admin/login.php?err=permis");
+        redirect("/hostay/admin/login.php?err=permis");
     } else {
         $name = $_POST["txtName"];
         if($name != "") {
@@ -16,12 +17,12 @@ if(!isset($_SESSION["user"])) {
             $item->setRoomtype_notes($notes);
             $result = $bsm->addRoomtype($item);
             if($result) {
-                header("location:/hostay/admin/roomtypes.php?suc=add");
+                redirect("/hostay/admin/roomtypes.php?suc=add");
             } else {
-                header("location:/hostay/admin/roomtypes.php?err=add");
+                redirect("/hostay/admin/roomtypes.php?err=add");
             }
         } else {
-            header("location:/hostay/admin/roomtypes.php?err=value");
+            redirect("/hostay/admin/roomtypes.php?err=value");
         }
     }
 }

@@ -1,7 +1,8 @@
 <?php
 require_once "../app/models/UserModel.php";
 
-session_start();
+require_once(__DIR__."/../libraries/Security.php");
+start_session();
 if(isset($_POST["login"])) {
     $user_name = isset($_POST["txtUserName"]) ? trim($_POST["txtUserName"]) : null;
     $user_pass = isset($_POST["txtPass"]) ? trim($_POST["txtPass"]) : null;
@@ -9,18 +10,14 @@ if(isset($_POST["login"])) {
         $um = new UserModel();
         $user = $um->getUser($user_name, $user_pass);
         if($user != null) {
-            $_SESSION["user"]["id"] = $user->getUser_id();
-            $_SESSION["user"]["name"] = $user->getUser_name();
-            $_SESSION["user"]["email"] = $user->getUser_email();
-            $_SESSION["user"]["fullname"] = $user->getUser_fullname();
-            $_SESSION["user"]["permission"] = $user->getUser_permission();
-            header("location:/hostay/admin/");
+            login_user($user);
+            redirect("/hostay/admin/");
         } else {
             unset($_POST);
-            header("location:/hostay/admin/login.php/?err=invalid");
+            redirect("/hostay/admin/login.php/?err=invalid");
         }
     } else {
-        header("location:/hostay/admin/login.php/?err=value");
+        redirect("/hostay/admin/login.php/?err=value");
     }
 }
 ?>
@@ -153,6 +150,7 @@ if(isset($_POST["login"])) {
         <div class="row justify-content-center">
             <div class="col-sm-12 py-3">
                 <form action="" method="post" class="needs-validation" novalidate>
+                            <?=csrf_field()?>
                     <div class="row text-center mx-2 fs-3 fw-bold">
                         <p>ADMIN LOGIN</p>
                     </div>

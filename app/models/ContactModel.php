@@ -47,9 +47,9 @@ class ContactModel extends BasicModel {
     function getContact($id) {
         $item = null;
         $sql = "SELECT * FROM tblcontact ";
-        $sql .= "WHERE contact_id=$id";
-        $result = $this->get($sql);
-        if($result->num_rows > 0) {
+        $sql .= "WHERE contact_id=?";
+        $result = $this->getV2($sql, "i", [(int) $id]);
+        if($result && $result->num_rows > 0) {
             $item = $result->fetch_object("ContactObject");
         }
         return $item;
@@ -57,22 +57,20 @@ class ContactModel extends BasicModel {
 
     function getContacts(ContactObject $similar, $page, $total) : array {
         $list = array();
+        $page = (int) $page;
+        $total = (int) $total;
         if($page <= 0) {
             $page = 1;
         }
         $at = ($page - 1) * $total;
         $sql = "SELECT * FROM tblcontact ";
         $sql .= "ORDER BY contact_id DESC ";
-        $sql .= "LIMIT $at, $total;";
-        try {
-            $result = $this->get($sql);
-            if($result->num_rows > 0) {
-                while($item = $result->fetch_object('ContactObject')) {
-                    array_push($list, $item);
-                }
+        $sql .= "LIMIT ?, ?;";
+        $result = $this->getV2($sql, "ii", [$at, $total]);
+        if($result && $result->num_rows > 0) {
+            while($item = $result->fetch_object('ContactObject')) {
+                array_push($list, $item);
             }
-        } catch(Exception $e) {
-            exit($sql."</br>".$e->getMessage()."</br>".$e->getTraceAsString());
         }
         return $list;
     }

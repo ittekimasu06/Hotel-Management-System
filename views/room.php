@@ -1,11 +1,12 @@
 <?php
-session_start();
+require_once(__DIR__."/../libraries/Security.php");
+start_session();
 if (!isset($_SESSION["user"]) || !isset($_SESSION["user"]["id"])) {
-  header("location:/hostay/views/login.php?err=login");
+  redirect("/hostay/views/login.php?err=login");
 }
 //
 if (!isset($_GET["id"]) || !is_numeric($_GET["id"]) || $_GET["id"] <= 0) {
-  header("location:/hostay/views/rooms.php");
+  redirect("/hostay/views/rooms.php");
 }
 //
 $id = $_GET["id"];
@@ -18,7 +19,7 @@ require_once("../libraries/Sendmail.php");
 $rm = new RoomModel();
 $item = $rm->getRoom($id);
 if ($item == null) {
-  header("location:/hostay/views/rooms.php?err=notok");
+  redirect("/hostay/views/rooms.php?err=notok");
 }
 $state = "";
 switch ($item->getRoom_static()) {
@@ -46,8 +47,8 @@ require_once("layouts/Toaster.php");
       <div class="row">
         <div class="col-md-12 col-lg-8">
           <div class="title-single-box">
-            <h1 class="title-single"><?= $item->getRoom_hotel_name() ?></h1>
-            <span class="color-text-a"><?= $item->getRoom_address() ?></span>
+            <h1 class="title-single"><?=e($item->getRoom_hotel_name())?></h1>
+            <span class="color-text-a"><?=e($item->getRoom_address())?></span>
           </div>
         </div>
         <div class="col-md-12 col-lg-4">
@@ -71,7 +72,7 @@ require_once("layouts/Toaster.php");
     <div class="container">
       <div class="row justify-content-center">
         <div class="col-lg-8 mb-5">
-          <img src="<?= $item->getRoom_image() ?>" alt="" class="img-fluid">
+          <img src="<?=e($item->getRoom_image())?>" alt="" class="img-fluid">
         </div>
       </div>
 
@@ -86,7 +87,7 @@ require_once("layouts/Toaster.php");
                     <span class="bi bi-cash">$</span>
                   </div>
                   <div class="card-title-c align-self-center">
-                    <h5 class="title-c"><?= $item->getRoom_price() ?></h5>
+                    <h5 class="title-c"><?=e($item->getRoom_price())?></h5>
                   </div>
                 </div>
               </div>
@@ -102,19 +103,19 @@ require_once("layouts/Toaster.php");
                   <ul class="list">
                     <li class="d-flex">
                       <strong class="me-2">ID:</strong>
-                      <span><?= $item->getRoom_id() ?></span>
+                      <span><?=e($item->getRoom_id())?></span>
                     </li>
                     <li class="d-flex">
                       <strong class="me-2">Địa chỉ:</strong>
-                      <span><?= $item->getRoom_address() ?></span>
+                      <span><?=e($item->getRoom_address())?></span>
                     </li>
                     <li class="d-flex">
                       <strong class="me-2">Loại:</strong>
-                      <span><?= $item->getRoomtype_name() ?></span>
+                      <span><?=e($item->getRoomtype_name())?></span>
                     </li>
                     <li class="d-flex">
                       <strong class="me-2">Loại giường ngủ:</strong>
-                      <span><?= $item->getRoom_bed_type() ?></span>
+                      <span><?=e($item->getRoom_bed_type())?></span>
                     </li>
                     <li class="d-flex">
                       <strong class="me-2">Trạng thái:</strong>
@@ -122,15 +123,15 @@ require_once("layouts/Toaster.php");
                     </li>
                     <li class="d-flex">
                       <strong class="me-2">Diện tích:</strong>
-                      <span><?= $item->getRoom_area() ?>m<sup>2</sup></span>
+                      <span><?=e($item->getRoom_area())?>m<sup>2</sup></span>
                     </li>
                     <li class="d-flex">
                       <strong class="me-2">Giường ngủ:</strong>
-                      <span><?= $item->getRoom_number_bed() ?></span>
+                      <span><?=e($item->getRoom_number_bed())?></span>
                     </li>
                     <li class="d-flex">
                       <strong class="me-2">Đánh giá:</strong>
-                      <span><?= $item->getRoom_quality() ?><i class="bi bi-star-fill text-warning ms-1"></i></span>
+                      <span><?=e($item->getRoom_quality())?><i class="bi bi-star-fill text-warning ms-1"></i></span>
                     </li>
                   </ul>
                 </div>
@@ -146,7 +147,7 @@ require_once("layouts/Toaster.php");
               </div>
               <div class="property-description">
                 <p class="description color-text-a">
-                  <?= $item->getRoom_detail() ?>
+                  <?=$item->getRoom_detail()?>
                 </p>
               </div>
               <div class="row section-t3">
@@ -185,12 +186,12 @@ require_once("layouts/Toaster.php");
           <div class="tab-content" id="pills-tabContent">
             <div class="tab-pane show active" id="pills-map" role="tabpanel" aria-labelledby="pills-map-tab">
               <iframe
-                src="https://maps.google.com/maps?q=<?= $item->getRoom_address() ?>&output=embed"
+                src="https://maps.google.com/maps?q=<?=e(urlencode($item->getRoom_address()))?>&output=embed"
                 width="100%"
                 height="460"
                 loading="lazy"
                 allowfullscreen
-                title="<?= $item->getRoom_address() ?>">
+                title="<?=e($item->getRoom_address())?>">
               </iframe>
             </div>
           </div>
@@ -207,6 +208,7 @@ require_once("layouts/Toaster.php");
             <div class="col-sm-12">
               <div class="property-contact">
                 <form class="form-a needs-validation" method="post" action="/hostay/actions/billadd.php" novalidate>
+                  <?=csrf_field()?>
                   <div class="row">
                     <div class="form-group col-md-6 mb-3">
                       <label for="txtFullname" class="form-label">Họ và tên</label>
@@ -317,7 +319,7 @@ require_once("layouts/Toaster.php");
                         rows="8"></textarea>
                     </div>
                   </div>
-                  <input type="hidden" name="idForPost" value="<?= $item->getRoom_id() ?>">
+                  <input type="hidden" name="idForPost" value="<?=e($item->getRoom_id())?>">
                   <div class="row mt-3 d-flex justify-content-center">
                     <div class="col-lg-3">
                       <button type="submit" class="btn btn-a"><i class="bi bi-send me-1"></i>Đặt phòng</button>

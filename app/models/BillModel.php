@@ -78,9 +78,9 @@ class BillModel extends BasicModel {
         $item = null;
         $sql = "SELECT * FROM tblbill ";
         $sql .= "LEFT JOIN tblbillstatic ON tblbill.bill_static = tblbillstatic.billstatic_id ";
-        $sql .= "WHERE bill_id=$id";
-        $result = $this->get($sql);
-        if($result->num_rows > 0) {
+        $sql .= "WHERE bill_id=?";
+        $result = $this->getV2($sql, "i", [(int) $id]);
+        if($result && $result->num_rows > 0) {
             $item = $result->fetch_object("BillObject");
         }
         return $item;
@@ -88,33 +88,33 @@ class BillModel extends BasicModel {
 
     function getBills(BillObject $similar, $page, $total) : array {
         $list = array();
+        $page = (int) $page;
+        $total = (int) $total;
         if($page <= 0) {
             $page = 1;
         }
         $at = ($page - 1) * $total;
+        [$where, $types, $params] = $this->createConditions($similar);
         $sql = "SELECT * FROM tblbill LEFT JOIN tblbillstatic ON tblbill.bill_static = tblbillstatic.billstatic_id ";
-        $sql .= $this->createConditions($similar);
+        $sql .= $where;
         $sql .= "ORDER BY bill_id DESC ";
-        $sql .= "LIMIT $at, $total;";
-        try {
-            $result = $this->get($sql);
-            if($result->num_rows > 0) {
-                while($item = $result->fetch_object('BillObject')) {
-                    array_push($list, $item);
-                }
+        $sql .= "LIMIT ?, ?;";
+        $result = $this->getV2($sql, $types."ii", [...$params, $at, $total]);
+        if($result && $result->num_rows > 0) {
+            while($item = $result->fetch_object('BillObject')) {
+                array_push($list, $item);
             }
-        } catch(Exception $e) {
-            exit($sql."</br>".$e->getMessage()."</br>".$e->getTraceAsString());
         }
         return $list;
     }
 
     function countBill(BillObject $similar) : int {
+        [$where, $types, $params] = $this->createConditions($similar);
         $sql = "SELECT COUNT(*) AS total FROM tblbill LEFT JOIN tblbillstatic ON tblbill.bill_static = tblbillstatic.billstatic_id ";
-        $sql .= $this->createConditions($similar);
+        $sql .= $where;
         $sql .= ";";
         $total = 0;
-        if($result = $this->get($sql)){
+        if($result = $this->getV2($sql, $types, $params)){
             if($row = $result->fetch_array()) {
                 $total = $row[0];
             }
@@ -122,17 +122,11 @@ class BillModel extends BasicModel {
         return $total;
     }
 
-    private function createConditions(BillObject $similar) {
-        $out = "";
+    private function createConditions(BillObject $similar) : array {
         if($similar->getBill_customer_id() != null) {
-            $user_id = $similar->getBill_customer_id();
-            $out .= "bill_customer_id=$user_id ";
+            return ["WHERE bill_customer_id=? ", "i", [(int) $similar->getBill_customer_id()]];
         }
-
-        if($out != "") {
-            $out = "WHERE $out";
-        }
-        return $out;
+        return ["", "", []];
     }
 
     /**
@@ -143,27 +137,22 @@ class BillModel extends BasicModel {
         $sql = "SELECT COUNT(*) AS total FROM tblbill ";
         switch($option) {
             case "DAY":
-                $sql .= "WHERE DAY(bill_created_at) = $time";
+                $sql .= "WHERE DAY(bill_created_at) = ?";
                 break;
             case "MONTH":
-                $sql .= "WHERE MONTH(bill_created_at) = $time";
+                $sql .= "WHERE MONTH(bill_created_at) = ?";
                 break;
             case "YEAR":
-                $sql .= "WHERE YEAR(bill_created_at) = $time";
+                $sql .= "WHERE YEAR(bill_created_at) = ?";
                 break;
             default:
-                break;
+                return 0;
         }
-        $sql .= ";";
         $total = 0;
-        try {
-            if($result = $this->get($sql)){
-                if($row = $result->fetch_array()) {
-                    $total = $row[0];
-                }
+        if($result = $this->getV2($sql, "i", [(int) $time])){
+            if($row = $result->fetch_array()) {
+                $total = $row[0];
             }
-        } catch(Exception $e) {
-            echo $sql."</br>".$e->getMessage()."</br>";
         }
         return $total;
 
@@ -179,32 +168,36 @@ class BillModel extends BasicModel {
     function getByTime($day, $month, $year, $option = "DAY", $isPaid = true) {
         $list = array();
         $sql = "SELECT * FROM tblbill ";
+        $day = (int) $day;
+        $month = (int) $month;
+        $year = (int) $year;
         switch($option) {
             case "DAY":
-                $sql .= "WHERE DAY(bill_created_at) = $day AND MONTH(bill_created_at) = $month AND YEAR(bill_created_at) = $year";
+                $sql .= "WHERE DAY(bill_created_at) = ? AND MONTH(bill_created_at) = ? AND YEAR(bill_created_at) = ?";
+                $types = "iii";
+                $params = [$day, $month, $year];
                 break;
             case "MONTH":
-                $sql .= "WHERE MONTH(bill_created_at) = $month AND YEAR(bill_created_at) = $year";
+                $sql .= "WHERE MONTH(bill_created_at) = ? AND YEAR(bill_created_at) = ?";
+                $types = "ii";
+                $params = [$month, $year];
                 break;
             case "YEAR":
-                $sql .= "WHERE YEAR(bill_created_at) = $year";
+                $sql .= "WHERE YEAR(bill_created_at) = ?";
+                $types = "i";
+                $params = [$year];
                 break;
             default:
-                break;
+                return $list;
         }
         if($isPaid) {
             $sql .= " AND bill_is_paid!=0";
         }
-        $sql .= ";";
-        try {
-            $result = $this->get($sql);
-            if($result->num_rows > 0) {
-                while($item = $result->fetch_object('BillObject')) {
-                    array_push($list, $item);
-                }
+        $result = $this->getV2($sql, $types, $params);
+        if($result && $result->num_rows > 0) {
+            while($item = $result->fetch_object('BillObject')) {
+                array_push($list, $item);
             }
-        } catch(Exception $e) {
-            echo $sql."</br>".$e->getMessage()."</br>";
         }
         return $list;
 
@@ -214,11 +207,11 @@ class BillModel extends BasicModel {
         $item = null;
         $sql = "SELECT * FROM tblbill ";
         $sql .= "LEFT JOIN tblbillstatic ON tblbill.bill_static = tblbillstatic.billstatic_id ";
-        $sql .= "WHERE bill_customer_id=$user_id ";
+        $sql .= "WHERE bill_customer_id=? ";
         $sql .= "ORDER BY bill_id DESC ";
         $sql .= "LIMIT 0,1 ";
-        $result = $this->get($sql);
-        if($result->num_rows > 0) {
+        $result = $this->getV2($sql, "i", [(int) $user_id]);
+        if($result && $result->num_rows > 0) {
             $item = $result->fetch_object("BillObject");
         }
         return $item;

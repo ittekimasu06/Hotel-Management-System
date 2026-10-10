@@ -1,5 +1,7 @@
 <?php
 function Paging($url, $page, $total, $totalperpage) {
+    $url = e($url);
+    $page = (int) $page;
     $countPages = (int)($total / $totalperpage);
     if($total % $totalperpage != 0) {
         $countPages++;

@@ -58,6 +58,7 @@ require_once("layouts/header.php");
         <div class="row d-flex justify-content-center">
           <div class="col-md-12">
             <form action="" method="post" class="needs-validation" novalidate>
+                            <?=csrf_field()?>
               <div class="row">
                 <div class="col-md-4 mt-3">
                   <label for="fullname" class="form-label text-dark fw-bold">Họ tên</label>

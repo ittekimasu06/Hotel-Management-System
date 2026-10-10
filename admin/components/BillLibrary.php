@@ -23,27 +23,27 @@ function BillTable($items) {
 
 function BillRow(BillObject $item) {
     $out = '<tr>';
-    $out .= '<th scope="row" class="align-middle">'.$item->getBill_id().'</th>';
-    $out .= '<td scope="row" class="align-middle">'.$item->getBill_fullname().'</td>';
+    $out .= '<th scope="row" class="align-middle">'.e($item->getBill_id()).'</th>';
+    $out .= '<td scope="row" class="align-middle">'.e($item->getBill_fullname()).'</td>';
     $out .= '<td scope="row" class="align-middle">'.date("d/m/Y", strtotime($item->getBill_created_at())).'</td>';
     $out .= '<td scope="row" class="align-middle">'.($item->getBill_is_paid() != 0 ? "Đã thanh toán" : "Chưa thanh toán").'</td>';
-    $out .= '<td scope="row" class="align-middle">'.$item->getBillstatic_name().'</td>';
+    $out .= '<td scope="row" class="align-middle">'.e($item->getBillstatic_name()).'</td>';
     $out .= '<td scope="row" class="align-middle">'.($item->getBill_cancel() == 0 ? "Có" : "Không").'</td>';
     //detail
     $out .= '<td class="align-middle">
-    <a class="btn btn-primary btn-sm" href="/hostay/admin/bill.php?id='.$item->getBill_id().'">
+    <a class="btn btn-primary btn-sm" href="/hostay/admin/bill.php?id='.e($item->getBill_id()).'">
         <i class="bi bi-eye"></i>
     </a>
     </td>';
     //edit
     $out .= '<td class="align-middle">
-    <a class="btn btn-success btn-sm" href="/hostay/admin/bill.php?id='.$item->getBill_id().'">
+    <a class="btn btn-success btn-sm" href="/hostay/admin/bill.php?id='.e($item->getBill_id()).'">
         <i class="bi bi-pencil-square"></i>
     </a>
     </td>';
     //del
     $out .= '<td class="align-middle">
-    <button class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#delBill'.$item->getBill_id().'">
+    <button class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#delBill'.e($item->getBill_id()).'">
         <i class="bi bi-trash"></i>
     </button>
     </td>';
@@ -54,7 +54,7 @@ function BillRow(BillObject $item) {
 
 function viewDel(BillObject $item) {
     $out = '<div class="modal fade"
-        id="delBill'.$item->getBill_id().'"
+        id="delBill'.e($item->getBill_id()).'"
         data-bs-backdrop="static" data-bs-keyboard="false"
         tabindex="-1" aria-labelledby="staticBackdropLabel"
         aria-hidden="true">';
@@ -65,12 +65,12 @@ function viewDel(BillObject $item) {
     $out .= '<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>';
     $out .= '</div><div class="modal-body">';
     $out .= '<p>Bạn có chắc chắn muốn xóa đơn này:</p>';
-    $out .= '<p><b>Khách hàng: </b>'.$item->getBill_fullname().'</p>';
+    $out .= '<p><b>Khách hàng: </b>'.e($item->getBill_fullname()).'</p>';
     $out .= '<p><b>Ngày tạo: </b>'.date("d/m/Y", strtotime($item->getBill_created_at())).'</p>';
-    $out .= '<p><b>Trạng thái: </b>'.$item->getBillstatic_name().'</p>';
+    $out .= '<p><b>Trạng thái: </b>'.e($item->getBillstatic_name()).'</p>';
     $out .= '</div><div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" name="exitDel">Thoát</button>
-                <a href="/hostay/actions/billdr.php?id='.$item->getBill_id().'" class="btn btn-danger">Xóa</a>
+                <a href="/hostay/actions/billdr.php?id='.e($item->getBill_id()).'&_token='.csrf_token().'" class="btn btn-danger">Xóa</a>
             </div></div></div></div>';
     return $out;
 }

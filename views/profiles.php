@@ -1,7 +1,8 @@
 <?php
-session_start();
+require_once(__DIR__."/../libraries/Security.php");
+start_session();
 if(!isset($_SESSION["user"]) || !isset($_SESSION["user"]["id"])) {
-    header("location:/hostay/views");
+    redirect("/hostay/views");
 }
 //
 require_once("../app/models/UserModel.php");
@@ -10,7 +11,7 @@ $um = new UserModel();
 //Lấy thông tin User
 $user = $um->getUserById($_SESSION["user"]["id"]);
 if($user == null) {
-    header("location:/hostay/views/login.php?err=notok");
+    redirect("/hostay/views/login.php?err=notok");
 }
 
 require_once("layouts/header.php");
@@ -54,22 +55,22 @@ require_once("layouts/Toaster.php");
 
                             <div class="row mt-3">
                             <div class="col-lg-2 col-md-3 fw-bold label ">Họ tên</div>
-                            <div class="col-lg-10 col-md-9"><?=$user->getUser_fullname()?></div>
+                            <div class="col-lg-10 col-md-9"><?=e($user->getUser_fullname())?></div>
                             </div>
 
                             <div class="row mt-3">
                             <div class="col-lg-2 col-md-3 fw-bold label">Tên đăng nhập</div>
-                            <div class="col-lg-10 col-md-9"><?=$user->getUser_name()?></div>
+                            <div class="col-lg-10 col-md-9"><?=e($user->getUser_name())?></div>
                             </div>
 
                             <div class="row mt-3">
                             <div class="col-lg-2 col-md-3 fw-bold label">Số điện thoại</div>
-                            <div class="col-lg-10 col-md-9"><?=$user->getUser_phone()?></div>
+                            <div class="col-lg-10 col-md-9"><?=e($user->getUser_phone())?></div>
                             </div>
 
                             <div class="row mt-3">
                             <div class="col-lg-2 col-md-3 fw-bold label">Email</div>
-                            <div class="col-lg-10 col-md-9"><?=$user->getUser_email()?></div>
+                            <div class="col-lg-10 col-md-9"><?=e($user->getUser_email())?></div>
                             </div>
 
                             <div class="row mt-3">
@@ -98,6 +99,7 @@ require_once("layouts/Toaster.php");
                             <form action="/hostay/actions/userupd.php"
                                 method="post"
                                 class="needs-validation" novalidate>
+                                <?=csrf_field()?>
 
                                 <div class="row mb-3">
                                     <label for="fullName" class="col-md-3 col-lg-2 col-form-label">Tên đầy đủ</label>
@@ -106,7 +108,7 @@ require_once("layouts/Toaster.php");
                                             type="text"
                                             class="form-control"
                                             id="fullName"
-                                            value="<?=$user->getUser_fullname()?>"
+                                            value="<?=e($user->getUser_fullname())?>"
                                             required>
                                     </div>
                                 </div>
@@ -118,7 +120,7 @@ require_once("layouts/Toaster.php");
                                             type="text"
                                             class="form-control"
                                             id="emailInput"
-                                            value="<?=$user->getUser_email()?>"
+                                            value="<?=e($user->getUser_email())?>"
                                             required>
                                     </div>
                                 </div>
@@ -129,11 +131,11 @@ require_once("layouts/Toaster.php");
                                         <input name="txtPhone"
                                             type="text"
                                             class="form-control"
-                                            id="Phone" value="<?=$user->getUser_phone()?>">
+                                            id="Phone" value="<?=e($user->getUser_phone())?>">
                                     </div>
                                 </div>
 
-                                <input type="hidden" name="idForPost" value="<?=$_SESSION["user"]["id"]?>">
+                                <input type="hidden" name="idForPost" value="<?=e($_SESSION["user"]["id"])?>">
 
                                 <div class="text-center">
                                     <button type="submit" class="btn btn-primary" name="edit">Lưu thay đổi</button>
@@ -148,6 +150,7 @@ require_once("layouts/Toaster.php");
                                 method="post"
                                 class="needs-validation"
                                 novalidate>
+                                <?=csrf_field()?>
 
                             <div class="row mb-3">
                                 <label for="currentPassword"
@@ -192,7 +195,7 @@ require_once("layouts/Toaster.php");
                                 </div>
                             </div>
 
-                            <input type="hidden" name="idForPost" value="<?=$_SESSION["user"]["id"]?>">
+                            <input type="hidden" name="idForPost" value="<?=e($_SESSION["user"]["id"])?>">
 
                             <div class="text-center">
                                 <button type="submit" class="btn btn-primary">Đổi mật khẩu</button>

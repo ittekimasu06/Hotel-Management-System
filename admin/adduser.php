@@ -1,10 +1,11 @@
 <?php
-session_start();
+require_once(__DIR__."/../libraries/Security.php");
+start_session();
 if(!isset($_SESSION["user"])) {
-    header("location:/hostay/admin/login.php");
+    redirect("/hostay/admin/login.php");
 } else {
     if(!isset($_SESSION["user"]["permission"]) || $_SESSION["user"]["permission"] < 1) {
-        header("location:/hostay/admin/login.php?err=permis");
+        redirect("/hostay/admin/login.php?err=permis");
     }
 }
 //
@@ -43,15 +44,15 @@ if(isset($_POST["addUser"])) {
         $user->setUser_created_at(date("Y-m-d"));
         if(!$um->isExists($user)) {
             if($um->addUser($user)) {
-                header("location:/hostay/admin/adduser.php?suc=add");
+                redirect("/hostay/admin/adduser.php?suc=add");
             }else {
-                header("location:/hostay/admin/adduser.php?err=add");
+                redirect("/hostay/admin/adduser.php?err=add");
             }
         } else {
-            header("location:/hostay/admin/adduser.php?err=exist");
+            redirect("/hostay/admin/adduser.php?err=exist");
         }
     } else {
-        header("location:/hostay/admin/adduser.php?err=value");
+        redirect("/hostay/admin/adduser.php?err=value");
     }
 }
 
@@ -77,6 +78,7 @@ require_once("layouts/Toast.php");
 		        <div class="card">
 		            <div class="card-body">
                         <form action="" method="post" class="needs-validation" novalidate>
+                            <?=csrf_field()?>
                             <div class="mb-3 mt-3 row">
                                 <label for="fullname" class="col-sm-3 col-form-label fw-bold">Tên đầy đủ</label>
                                 <div class="col-sm-9">

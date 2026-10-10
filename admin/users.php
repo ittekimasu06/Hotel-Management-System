@@ -1,10 +1,11 @@
 <?php
-session_start();
+require_once(__DIR__."/../libraries/Security.php");
+start_session();
 if(!isset($_SESSION["user"])) {
-    header("location:/hostay/admin/login.php");
+    redirect("/hostay/admin/login.php");
 } else {
     if(!isset($_SESSION["user"]["permission"]) || $_SESSION["user"]["permission"] < 1) {
-        header("location:/hostay/admin/login.php?err=permis");
+        redirect("/hostay/admin/login.php?err=permis");
     }
 }
 //
@@ -26,7 +27,7 @@ if(isset($_GET["key"])) {
 }
 if($saveKey != "") {
     $similar->setUser_name($saveKey);
-    $param = "key=$saveKey";
+    $param = "key=".urlencode($saveKey);
 }
 
 //Phân trang

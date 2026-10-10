@@ -23,21 +23,21 @@ function ContactTable($items) {
 
 function ContactRow(ContactObject $item) {
     $out = '<tr>';
-    $out .= '<th scope="row" class="align-middle">'.$item->getContact_id().'</th>';
-    $out .= '<td scope="row" class="align-middle">'.$item->getContact_fullname().'</td>';
-    $out .= '<td scope="row" class="align-middle">'.$item->getContact_subject().'</td>';
+    $out .= '<th scope="row" class="align-middle">'.e($item->getContact_id()).'</th>';
+    $out .= '<td scope="row" class="align-middle">'.e($item->getContact_fullname()).'</td>';
+    $out .= '<td scope="row" class="align-middle">'.e($item->getContact_subject()).'</td>';
     $out .= '<td scope="row" class="align-middle">'.date("d-m-Y", strtotime($item->getContact_created_at())).'</td>';
     $out .= '<td scope="row" class="align-middle">'.($item->getContact_seen() == 0 ? "<span class=\"text-danger\">Chưa xem</span>" : "<span class=\"text-success\">Đã xem</span>").'</td>';
     //detail
     $out .= '<td class="align-middle" width="1">
-    <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#viewContact'.$item->getContact_id().'">
+    <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#viewContact'.e($item->getContact_id()).'">
         <i class="bi bi-eye"></i>
     </button>';
     $out .= viewDetail($item);
     $out .= '</td>';
     //del
     $out .= '<td class="align-middle">
-    <button class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#delContact'.$item->getContact_id().'">
+    <button class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#delContact'.e($item->getContact_id()).'">
         <i class="bi bi-trash"></i>
     </button>';
     $out .= viewDel($item);
@@ -48,7 +48,7 @@ function ContactRow(ContactObject $item) {
 
 function viewDetail($item) {
     $out = '<div class="modal fade"
-        id="viewContact'.$item->getContact_id().'"
+        id="viewContact'.e($item->getContact_id()).'"
         data-bs-keyboard="false"
         tabindex="-1" aria-labelledby="staticBackdropLabel"
         aria-hidden="true">';
@@ -60,19 +60,19 @@ function viewDetail($item) {
     $out .= '</div><div class="modal-body">';
     $out .= '<div class="row mt-3">
                 <div class="col-sm-12 fw-bold">Họ tên:</div>
-                <div class="col-sm-12">'.$item->getContact_fullname().'</div>
+                <div class="col-sm-12">'.e($item->getContact_fullname()).'</div>
             </div>';
     $out .= '<div class="row mt-3">
                 <div class="col-sm-12 fw-bold">Email:</div>
-                <div class="col-sm-12">'.$item->getContact_email().'</div>
+                <div class="col-sm-12">'.e($item->getContact_email()).'</div>
             </div>';
     $out .= '<div class="row mt-3">
                 <div class="col-sm-12 fw-bold">Tiêu đề:</div>
-                <div class="col-sm-12">'.$item->getContact_subject().'</div>
+                <div class="col-sm-12">'.e($item->getContact_subject()).'</div>
             </div>';
     $out .= '<div class="row mt-3">
                 <div class="col-sm-12 fw-bold">Nội dung:</div>
-                <div class="col-sm-12">'.$item->getContact_notes().'</div>
+                <div class="col-sm-12">'.e($item->getContact_notes()).'</div>
             </div>';
     $out .= '<div class="row mt-3">
                 <div class="col-sm-12 fw-bold">Ngày tạo:</div>
@@ -80,7 +80,7 @@ function viewDetail($item) {
             </div>';
     //form
     $out .= '<div class="row mt-3">
-                <form action="/hostay/actions/answer.php" method="post" class="needs-validation" novalidate>
+                <form action="/hostay/actions/answer.php" method="post" class="needs-validation" novalidate>'.csrf_field().'
                     <div class="row mb-3">
                         <div class="col-md-12">
                             <label for="nt" class="form-label fw-bold">Trả lời khách hàng</label>
@@ -91,7 +91,7 @@ function viewDetail($item) {
                                 required></textarea>
                             <div class="invalid-feedback">Vui lòng nhập nội dung.</div>
                         </div>
-                        <input type="hidden" name="idForPost" value="'.$item->getContact_id().'">
+                        <input type="hidden" name="idForPost" value="'.e($item->getContact_id()).'">
                         <div class="col-md-12 mt-3">
                             <button type="submit" class="btn btn-dark"><i class="bi bi-send"></i> Trả lời</button>
                         </div>
@@ -102,7 +102,7 @@ function viewDetail($item) {
     //end form
     $out .= '</div><div class="modal-footer">';
     if($item->getContact_seen() == 0) {
-        $out .= '<a href="/hostay/actions/contactupd.php?id='.$item->getContact_id().'" class="btn btn-primary">Đánh dấu đã xem</a>';
+        $out .= '<a href="/hostay/actions/contactupd.php?id='.e($item->getContact_id()).'&_token='.csrf_token().'" class="btn btn-primary">Đánh dấu đã xem</a>';
     }
     $out .= '<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Thoát</button>';
     $out .= '</div></div></div></div>';
@@ -112,7 +112,7 @@ function viewDetail($item) {
 
 function viewDel($item) {
     $out = '<div class="modal fade"
-        id="delContact'.$item->getContact_id().'"
+        id="delContact'.e($item->getContact_id()).'"
         data-bs-backdrop="static" data-bs-keyboard="false"
         tabindex="-1" aria-labelledby="staticBackdropLabel"
         aria-hidden="true">';
@@ -123,13 +123,13 @@ function viewDel($item) {
     $out .= '<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>';
     $out .= '</div><div class="modal-body">';
     $out .= '<p>Bạn có chắc chắn muốn xóa phản hồi này:</p>';
-    $out .= '<p><b>Họ tên: </b>'.$item->getContact_fullname().'</p>';
-    $out .= '<p><b>Chủ đề: </b>'.$item->getContact_subject().'</p>';
+    $out .= '<p><b>Họ tên: </b>'.e($item->getContact_fullname()).'</p>';
+    $out .= '<p><b>Chủ đề: </b>'.e($item->getContact_subject()).'</p>';
     $out .= '<p><b>Ngày tạo: </b>'.date("d-m-Y", strtotime($item->getContact_created_at())).'</p>';
     $out .= '<p><b>Trạng thái: </b>'.($item->getContact_seen() == 0 ? "Chưa xem" : "Đã xem").'</p>';
     $out .= '</div><div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" name="exitDel">Thoát</button>
-                <a href="/hostay/actions/contactdr.php?id='.$item->getContact_id().'" class="btn btn-danger">Xóa</a>
+                <a href="/hostay/actions/contactdr.php?id='.e($item->getContact_id()).'&_token='.csrf_token().'" class="btn btn-danger">Xóa</a>
             </div></div></div></div>';
     return $out;
 }

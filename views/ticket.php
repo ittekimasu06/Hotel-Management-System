@@ -1,7 +1,27 @@
 <?php
-session_start();
+require_once(__DIR__."/../libraries/Security.php");
+start_session();
 if(!isset($_SESSION["user"]) || !isset($_SESSION["user"]["id"])) {
-    header("location:/hostay/views");
+    redirect("/hostay/views");
+}
+if(!isset($_GET["id"]) || !is_numeric($_GET["id"])) {
+    redirect("/hostay/views/?err=value");
+}
+require_once("../app/models/BillModel.php");
+require_once("../app/models/RoomModel.php");
+require_once("../libraries/Utilities.php");
+$bm = new BillModel();
+$rm = new RoomModel();
+$bill = $bm->getBill($_GET["id"]);
+if($bill == null) {
+    redirect("/hostay/views/?err=noexist");
+}
+if($bill->getBill_customer_id() != $_SESSION["user"]["id"] && $_SESSION["user"]["permission"] < 1) {
+    redirect("/hostay/views");
+}
+$room = $rm->getRoom($bill->getBill_room_id());
+if($room == null) {
+    redirect("/hostay/views/?err=noexist");
 }
 ?>
 <!DOCTYPE html>
@@ -31,29 +51,6 @@ if(!isset($_SESSION["user"]) || !isset($_SESSION["user"]["id"])) {
     </style>
 </head>
 <body>
-    <?php
-        if(!isset($_GET["id"]) || !is_numeric($_GET["id"])) {
-            header("location:/hostay/views/?err=value");
-        }
-        require_once("../app/models/BillModel.php");
-        require_once("../app/models/RoomModel.php");
-        require_once("../libraries/Utilities.php");
-        $bm = new BillModel();
-        $rm = new RoomModel();
-        $bill = $bm->getBill($_GET["id"]);
-        $room = null;
-        if($bill != null) {
-            if($bill->getBill_customer_id() != $_SESSION["user"]["id"] && $_SESSION["user"]["permission"] == 0) {
-                header("location:/hostay/views");
-            }
-            $room = $rm->getRoom($bill->getBill_room_id());
-            if($room == null) {
-                header("location:/hostay/views/?err=noexist");
-            }
-        } else {
-            header("location:/hostay/views/?err=noexist");
-        }
-    ?>
     <div class="container">
         <div class="row text-white my-3">
             <h1 align="center">ĐƠN ĐĂNG KÝ ĐẶT PHÒNG</h1>
@@ -71,11 +68,11 @@ if(!isset($_SESSION["user"]) || !isset($_SESSION["user"]["id"])) {
                 <div class="row d-flex justify-content-between">
                     <div class="col-6">
                         <span class="me-2"><b>Khách sạn:</b></span>
-                        <?=$room->getRoom_hotel_name()?>
+                        <?=e($room->getRoom_hotel_name())?>
                     </div>
                     <div class="col-3 d-flex justify-content-center">
                         <span class="me-2"><b>Mã phiếu:</b></span>
-                        <?=$bill->getBill_id()?>
+                        <?=e($bill->getBill_id())?>
                     </div>
                 </div>
                 <div class="row p-4 mb-4">
@@ -83,15 +80,15 @@ if(!isset($_SESSION["user"]) || !isset($_SESSION["user"]["id"])) {
                 </div>
                 <div class="row">
                     <div class="col-3"><b>Tên khách hàng:</b></div>
-                    <div class="col-9"><?=$bill->getBill_fullname()?></div>
+                    <div class="col-9"><?=e($bill->getBill_fullname())?></div>
                 </div>
                 <div class="row">
                     <div class="col-3"><b>Số điện thoại:</b></div>
-                    <div class="col-9"><?=$bill->getBill_phone()?></div>
+                    <div class="col-9"><?=e($bill->getBill_phone())?></div>
                 </div>
                 <div class="row">
                     <div class="col-3"><b>Email:</b></div>
-                    <div class="col-9"><?=$bill->getBill_email()?></div>
+                    <div class="col-9"><?=e($bill->getBill_email())?></div>
                 </div>
                 <div class="row">
                     <div class="col-3"><b>Ngày tạo:</b></div>
@@ -115,19 +112,19 @@ if(!isset($_SESSION["user"]) || !isset($_SESSION["user"]["id"])) {
                             </thead>
                             <tbody>
                                 <tr>
-                                    <td><?=$bill->getBill_id()?></td>
+                                    <td><?=e($bill->getBill_id())?></td>
                                     <td>
-                                        <span class="d-flex justify-content-end"><?=$bill->getBill_number_room()?></span>
+                                        <span class="d-flex justify-content-end"><?=e($bill->getBill_number_room())?></span>
                                     </td>
                                     <td>
-                                        <span class="d-flex justify-content-end"><?=$bill->getBill_number_adult()?></span>
+                                        <span class="d-flex justify-content-end"><?=e($bill->getBill_number_adult())?></span>
                                     </td>
                                     <td>
-                                        <span class="d-flex justify-content-end"><?=$bill->getBill_number_children()?></span>
+                                        <span class="d-flex justify-content-end"><?=e($bill->getBill_number_children())?></span>
                                     </td>
                                     <td><?=date("d-m-Y", strtotime($bill->getBill_start_date()))?></td>
                                     <td><?=date("d-m-Y", strtotime($bill->getBill_end_date()))?></td>
-                                    <td><span class="d-flex justify-content-end"><?=$room->getRoom_price()?>$</span></td>
+                                    <td><span class="d-flex justify-content-end"><?=e($room->getRoom_price())?>$</span></td>
                                     <?php
                                         $diff = getDateDiff($bill->getBill_start_date(), $bill->getBill_end_date());
                                         $total = $diff * $room->getRoom_price() * $bill->getBill_number_room();
@@ -144,7 +141,7 @@ if(!isset($_SESSION["user"]) || !isset($_SESSION["user"]["id"])) {
                 </div>
                 <div class="row mt-3">
                     <div class="col-12 fw-bold">Ghi chú:</div>
-                    <div class="col-12"><?=$bill->getBill_notes()?></div>
+                    <div class="col-12"><?=e($bill->getBill_notes())?></div>
                 </div>
                 <div class="row mt-3">
                     <div class="col-3"><b>Thanh toán:</b></div>
@@ -153,11 +150,11 @@ if(!isset($_SESSION["user"]) || !isset($_SESSION["user"]["id"])) {
                 <div class="row my-5 d-flex justify-content-between">
                     <div class="col-5">
                         <div class="d-flex justify-content-center mb-2"><b>Nhân viên xác nhận</b></div>
-                        <div class="d-flex justify-content-center"><?=$bill->getBill_staff_name()?></div>
+                        <div class="d-flex justify-content-center"><?=e($bill->getBill_staff_name())?></div>
                     </div>
                     <div class="col-5">
                         <div class="d-flex justify-content-center mb-2"><b>Khách hàng</b></div>
-                        <div class="d-flex justify-content-center"><?=$bill->getBill_fullname()?></div>
+                        <div class="d-flex justify-content-center"><?=e($bill->getBill_fullname())?></div>
                     </div>
                 </div>
             </div>
@@ -174,7 +171,7 @@ if(!isset($_SESSION["user"]) || !isset($_SESSION["user"]["id"])) {
                 const base64image = canvas.toDataURL("image/png");
                 let anchor = document.createElement("a");
                 anchor.setAttribute("href", base64image);
-                anchor.setAttribute("download", "Phieu_xac_nhan_dat_phong_<?=$bill->getBill_id()?>.png");
+                anchor.setAttribute("download", "Phieu_xac_nhan_dat_phong_<?=e($bill->getBill_id())?>.png");
                 anchor.click();
                 anchor.remove();
             });
@@ -185,7 +182,7 @@ if(!isset($_SESSION["user"]) || !isset($_SESSION["user"]["id"])) {
 
             var opt = {
                 margin:       0.5,
-                filename:     'Phieu_xac_nhan_dat_phong_<?=$bill->getBill_id()?>.pdf',
+                filename:     'Phieu_xac_nhan_dat_phong_<?=e($bill->getBill_id())?>.pdf',
                 image:        { type: 'jpeg', quality: 0.98 },
                 html2canvas:  { scale: 2 , width: 920 },
                 jsPDF:        { unit: 'in', format: 'A4', orientation: 'portrait' }

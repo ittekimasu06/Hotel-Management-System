@@ -2,7 +2,8 @@
 require_once("../app/models/UserModel.php");
 require_once("../libraries/Utilities.php");
 
-session_start();
+require_once(__DIR__."/../libraries/Security.php");
+start_session();
 if (isset($_POST["register"])) {
     $user_name = isset($_POST["txtUserName"]) ? trim($_POST["txtUserName"]) : null;
     $user_pass1 = isset($_POST["txtPass1"]) ? trim($_POST["txtPass1"]) : null;
@@ -13,7 +14,7 @@ if (isset($_POST["register"])) {
         $user_name != null && $user_name != ""
         && checkValidPassWord($user_pass1, $user_pass2)
         && $user_fullname != null && $user_fullname != ""
-        && $user_email != null && $user_email != ""
+        && $user_email != null && checkEmail($user_email)
     ) {
         $um = new UserModel();
         $user = new UserObject();
@@ -26,23 +27,19 @@ if (isset($_POST["register"])) {
         if (!$um->isExists($user)) {
             if ($um->addUser($user)) {
                 if ($user_register = $um->getUser($user_name, $user_pass1)) {
-                    $_SESSION["user"]["id"] = $user_register->getUser_id();
-                    $_SESSION["user"]["name"] = $user_register->getUser_name();
-                    $_SESSION["user"]["email"] = $user_register->getUser_email();
-                    $_SESSION["user"]["fullname"] = $user_register->getUser_fullname();
-                    $_SESSION["user"]["permission"] = $user->getUser_permission();
-                    header("location:/hostay/");
+                    login_user($user_register);
+                    redirect("/hostay/");
                 } else {
-                    header("location:/hostay/views/login.php");
+                    redirect("/hostay/views/login.php");
                 }
             } else {
-                header("location:/hostay/views/register.php?err=add");
+                redirect("/hostay/views/register.php?err=add");
             }
         } else {
-            header("location:/hostay/views/register.php?err=exist");
+            redirect("/hostay/views/register.php?err=exist");
         }
     } else {
-        header("location:/hostay/views/register.php?err=value");
+        redirect("/hostay/views/register.php?err=value");
     }
 }
 ?>
@@ -176,6 +173,7 @@ if (isset($_POST["register"])) {
         <div class="row justify-content-center">
             <div class="col-12 py-3">
                 <form action="" method="post" class="needs-validation" novalidate>
+                            <?=csrf_field()?>
                     <div class="row text-center mx-2 fs-3 fw-bold">
                         <p>ĐĂNG KÝ</p>
                     </div>

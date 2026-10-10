@@ -1,10 +1,11 @@
 <?php
-session_start();
+require_once(__DIR__."/../libraries/Security.php");
+start_session();
 if(!isset($_SESSION["user"])) {
-    header("location:/hostay/admin/login.php");
+    redirect("/hostay/admin/login.php");
 } else {
     if(!isset($_SESSION["user"]["permission"]) || $_SESSION["user"]["permission"] < 1) {
-        header("location:/hostay/admin/login.php?err=permis");
+        redirect("/hostay/admin/login.php?err=permis");
     }
 }
 //
@@ -12,7 +13,7 @@ $_SESSION["pos"] = "room";
 $_SESSION["active"] = "rolist";
 //
 if(!isset($_GET["id"]) || !is_numeric($_GET["id"]) || $_GET["id"] < 1) {
-    header("location:/hostay/admin/rooms.php");
+    redirect("/hostay/admin/rooms.php");
 }
 require_once("../app/models/RoomModel.php");
 require_once("../libraries/ImgUpload.php");
@@ -24,7 +25,7 @@ $rm = new RoomModel();
 $item = $rm->getRoom($id);
 
 if($item == null) {
-    header("location:/hostay/admin/rooms.php?err=noexist");
+    redirect("/hostay/admin/rooms.php?err=noexist");
 }
 
 $target_dir = "/hostay/public/images";
@@ -57,19 +58,19 @@ if(isset($_POST["addRoom"])) {
     && $price != ""
     && $area != "") {
         if(!is_numeric($numpeople) || $numpeople < 1 || $numpeople > 10) {
-            header("location:/hostay/admin/editroom.php?id=$id&err=np");
+            redirect("/hostay/admin/editroom.php?id=$id&err=np");
         }
         if(!is_numeric($numbed) || $numbed < 1 || $numbed > 10) {
-            header("location:/hostay/admin/editroom.php?id=$id&err=nb");
+            redirect("/hostay/admin/editroom.php?id=$id&err=nb");
         }
         if(!is_numeric($quality) || $quality < 1 || $quality > 5) {
-            header("location:/hostay/admin/editroom.php?id=$id&err=fq");
+            redirect("/hostay/admin/editroom.php?id=$id&err=fq");
         }
         if(!is_numeric($price) || $quality < 0) {
-            header("location:/hostay/admin/editroom.php?id=$id&err=fp");
+            redirect("/hostay/admin/editroom.php?id=$id&err=fp");
         }
         if(!is_numeric($area) || $quality < 0) {
-            header("location:/hostay/admin/editroom.php?id=$id&err=fa");
+            redirect("/hostay/admin/editroom.php?id=$id&err=fa");
         }
         if(isset($_FILES["roomImage"])
         && file_exists($_FILES["roomImage"]["tmp_name"])
@@ -77,7 +78,7 @@ if(isset($_POST["addRoom"])) {
             if($target_file = ImgUpload($target_dir, $_FILES["roomImage"])) {
                 $new_img = $target_file;
             } else {
-                header("location:/hostay/admin/editroom.php?id=$id&err=upload");
+                redirect("/hostay/admin/editroom.php?id=$id&err=upload");
             }
         }
         $detail = $_POST["txtDetail"];
@@ -99,15 +100,15 @@ if(isset($_POST["addRoom"])) {
             if($new_img != "") {
                 DeleteFile($old_img);
             }
-            header("location:/hostay/admin/rooms.php?suc=upd");
+            redirect("/hostay/admin/rooms.php?suc=upd");
         } else {
             if($new_img != "") {
                 DeleteFile($new_img);
             }
-            header("location:/hostay/admin/rooms.php?err=upd");
+            redirect("/hostay/admin/rooms.php?err=upd");
         }
     } else {
-        header("location:/hostay/admin/editroom.php?id=$id&err=lack");
+        redirect("/hostay/admin/editroom.php?id=$id&err=lack");
     }
 }
 
@@ -137,11 +138,12 @@ require_once("layouts/Toast.php");
                             class="needs-validation"
                             enctype="multipart/form-data"
                             novalidate>
+                            <?=csrf_field()?>
                             <div class="row mt-3 mb-3">
                                 <label for="" class="col-form-label fw-bold">Ảnh hiển thị</label>
                                 <label for="roomImage"
                                     class="btn-uploaded">
-                                    <img src="<?=$item->getRoom_image()?>" class="img-uploaded" alt="">
+                                    <img src="<?=e($item->getRoom_image())?>" class="img-uploaded" alt="">
                                 </label>
                                 <input type="file"
                                     id="roomImage"
@@ -156,7 +158,7 @@ require_once("layouts/Toast.php");
                                         id="hotelName"
                                         name="txtHotelName"
                                         placeholder="Hotel name"
-                                        value="<?=$item->getRoom_hotel_name()?>"
+                                        value="<?=e($item->getRoom_hotel_name())?>"
                                         required>
                                     <div class="invalid-feedback">
                                         Hãy nhập tên khách sạn
@@ -171,7 +173,7 @@ require_once("layouts/Toast.php");
                                         id="address"
                                         name="txtAddress"
                                         placeholder="Address"
-                                        value="<?=$item->getRoom_address()?>"
+                                        value="<?=e($item->getRoom_address())?>"
                                         required>
                                     <div class="invalid-feedback">
                                         Hãy nhập địa chỉ
@@ -185,11 +187,11 @@ require_once("layouts/Toast.php");
                                         <?php
                                             $rtypes = $rtm->getRoomtypes(new RoomtypeObject, 1, 100);
                                             foreach($rtypes as $rtype) {
-                                                $out = '<option value="'.$rtype->getRoomtype_id().'" ';
+                                                $out = '<option value="'.e($rtype->getRoomtype_id()).'" ';
                                                 if($item->getRoom_type_id() == $rtype->getRoomtype_id()) {
                                                     $out .= "selected";
                                                 }
-                                                $out .= '>'.$rtype->getRoomtype_name().'</option>';
+                                                $out .= '>'.e($rtype->getRoomtype_name()).'</option>';
                                                 echo $out;
                                             }
                                         ?>
@@ -205,7 +207,7 @@ require_once("layouts/Toast.php");
                                         list="roomBedTypeSlc"
                                         class="form-control"
                                         placeholder="Type of bed"
-                                        value="<?=$item->getRoom_bed_type()?>"
+                                        value="<?=e($item->getRoom_bed_type())?>"
                                         required>
                                     <datalist id="roomBedTypeSlc">
                                         <option value="Giường đơn nhỏ">
@@ -228,7 +230,7 @@ require_once("layouts/Toast.php");
                                         placeholder="Number of people"
                                         min="1"
                                         max="10"
-                                        value="<?=$item->getRoom_number_people()?>"
+                                        value="<?=e($item->getRoom_number_people())?>"
                                         required>
                                     <div class="invalid-feedback">
                                         Hãy nhập số người ở
@@ -245,7 +247,7 @@ require_once("layouts/Toast.php");
                                         placeholder="Number of bed"
                                         min="1"
                                         max="10"
-                                        value="<?=$item->getRoom_number_bed()?>"
+                                        value="<?=e($item->getRoom_number_bed())?>"
                                         required>
                                     <div class="invalid-feedback">
                                         Hãy nhập số giường ngủ
@@ -260,7 +262,7 @@ require_once("layouts/Toast.php");
                                         id="roomQuality"
                                         name="txtQuality"
                                         placeholder="Từ 1 đến 5 sao"
-                                        value="<?=$item->getRoom_quality()?>"
+                                        value="<?=e($item->getRoom_quality())?>"
                                         required>
                                     <div class="invalid-feedback">
                                         Hãy nhập đánh giá
@@ -275,7 +277,7 @@ require_once("layouts/Toast.php");
                                         id="roomPrice"
                                         name="txtPrice"
                                         placeholder="Price ($)/Night > 0"
-                                        value="<?=$item->getRoom_price()?>"
+                                        value="<?=e($item->getRoom_price())?>"
                                         required>
                                     <div class="invalid-feedback">
                                         Hãy nhập giá phòng
@@ -290,7 +292,7 @@ require_once("layouts/Toast.php");
                                         id="roomArea"
                                         name="txtArea"
                                         placeholder="Area (m²) > 0"
-                                        value="<?=$item->getRoom_area()?>"
+                                        value="<?=e($item->getRoom_area())?>"
                                         required>
                                     <div class="invalid-feedback">
                                         Hãy nhập diện tích
@@ -320,7 +322,7 @@ require_once("layouts/Toast.php");
                                         id="detail"
                                         rows="6"
                                         class="form-control"
-                                        placeholder="Description"><?=$item->getRoom_detail()?></textarea>
+                                        placeholder="Description"><?=e($item->getRoom_detail())?></textarea>
                                 </div>
                             </div>
                             <div class="mb-3 row d-flex justify-content-center">

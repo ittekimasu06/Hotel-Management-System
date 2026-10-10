@@ -153,22 +153,22 @@ require_once("layouts/Toaster.php");
                 <div class="carousel-item-b swiper-slide">
                     <div class="card-box-a card-shadow">
                         <div class="img-box-a">
-                            <img src="<?=$item->getRoom_image()?>" alt="" class="img-a img-fluid">
+                            <img src="<?=e($item->getRoom_image())?>" alt="" class="img-a img-fluid">
                         </div>
                         <div class="card-overlay">
                             <div class="card-overlay-a-content">
                                 <div class="card-header-a">
                                     <h2 class="card-title-a">
-                                        <a href="/hostay/views/room.php?id=<?=$item->getRoom_id()?>">
-                                            <?=$item->getRoomtype_name()?>
+                                        <a href="/hostay/views/room.php?id=<?=e($item->getRoom_id())?>">
+                                            <?=e($item->getRoomtype_name())?>
                                         </a>
                                     </h2>
                                 </div>
                                 <div class="card-body-a">
                                     <div class="price-box d-flex">
-                                        <span class="price-a">Giá | $ <?=$item->getRoom_price()?></span>
+                                        <span class="price-a">Giá | $ <?=e($item->getRoom_price())?></span>
                                     </div>
-                                    <a href="/hostay/views/room.php?id=<?=$item->getRoom_id()?>"
+                                    <a href="/hostay/views/room.php?id=<?=e($item->getRoom_id())?>"
                                         class="link-a">
                                         Click để xem chi tiết<span class="bi bi-chevron-right"></span>
                                     </a>
@@ -177,22 +177,22 @@ require_once("layouts/Toaster.php");
                             <ul class="card-info d-flex justify-content-around">
                                 <li>
                                     <h4 class="card-info-title">Area</h4>
-                                    <span><?=$item->getRoom_area()?>m
+                                    <span><?=e($item->getRoom_area())?>m
                                         <sup>2</sup>
                                     </span>
                                 </li>
                                 <li>
                                     <h4 class="card-info-title">Beds</h4>
-                                    <span><?=$item->getRoom_number_bed()?></span>
+                                    <span><?=e($item->getRoom_number_bed())?></span>
                                 </li>
                                 <li>
                                     <h4 class="card-info-title">People</h4>
-                                    <span><?=$item->getRoom_number_people()?></span>
+                                    <span><?=e($item->getRoom_number_people())?></span>
                                 </li>
                                 <li>
                                     <h4 class="card-info-title">Quality</h4>
                                     <span>
-                                        <?=$item->getRoom_quality()?>
+                                        <?=e($item->getRoom_quality())?>
                                         <i class="bi bi-star-fill text-warning ms-1"></i>
                                     </span>
                                 </li>
@@ -393,13 +393,13 @@ require_once("layouts/Toaster.php");
               if($count < 6) {
                 $count++;
                 echo '
-                  <a class="col-4 gallery-show" href="'.$item->getRoom_image().'">
+                  <a class="col-4 gallery-show" href="'.e($item->getRoom_image()).'">
                     <div class="gallery-icon" data-number="+'.(count($items)-5).'"></div>
-                    <img src="'.$item->getRoom_image().'" alt="">
+                    <img src="'.e($item->getRoom_image()).'" alt="">
                   </a>
                 ';
               } else {
-                echo '<a class="" href="'.$item->getRoom_image().'"></a>';
+                echo '<a class="" href="'.e($item->getRoom_image()).'"></a>';
               }
             }
           ?>

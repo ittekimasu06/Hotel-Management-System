@@ -1,10 +1,11 @@
 <?php
-session_start();
+require_once(__DIR__."/../libraries/Security.php");
+start_session();
 if(!isset($_SESSION["user"])) {
-    header("location:/hostay/admin/login.php");
+    redirect("/hostay/admin/login.php");
 } else {
     if(!isset($_SESSION["user"]["permission"]) || $_SESSION["user"]["permission"] < 1) {
-        header("location:/hostay/admin/login.php?err=permis");
+        redirect("/hostay/admin/login.php?err=permis");
     }
 }
 //
@@ -43,19 +44,19 @@ if(isset($_POST["addRoom"])) {
     && $price != ""
     && $area != "") {
         if(!is_numeric($numpeople) || $numpeople < 1 || $numpeople > 10) {
-            header("location:/hostay/admin/addroom.php?err=np");
+            redirect("/hostay/admin/addroom.php?err=np");
         }
         if(!is_numeric($numbed) || $numbed < 1 || $numbed > 10) {
-            header("location:/hostay/admin/addroom.php?err=nb");
+            redirect("/hostay/admin/addroom.php?err=nb");
         }
         if(!is_numeric($quality) || $quality < 1 || $quality > 5) {
-            header("location:/hostay/admin/addroom.php?err=fq");
+            redirect("/hostay/admin/addroom.php?err=fq");
         }
         if(!is_numeric($price) || $price < 0) {
-            header("location:/hostay/admin/addroom.php?err=fp");
+            redirect("/hostay/admin/addroom.php?err=fp");
         }
         if(!is_numeric($area) || $area < 0) {
-            header("location:/hostay/admin/addroom.php?err=fa");
+            redirect("/hostay/admin/addroom.php?err=fa");
         }
         if(isset($_FILES["roomImage"])
         && file_exists($_FILES["roomImage"]["tmp_name"])
@@ -77,19 +78,19 @@ if(isset($_POST["addRoom"])) {
                 $item->setRoom_image($target_file);
                 $item->setRoom_detail($detail);
                 if($rm->addRoom($item)) {
-                    header("location:/hostay/admin/addroom.php?suc=addr");
+                    redirect("/hostay/admin/addroom.php?suc=addr");
                 } else {
                     DeleteFile($target_file);
-                    header("location:/hostay/admin/addroom.php?err=add");
+                    redirect("/hostay/admin/addroom.php?err=add");
                 }
             } else {
-                header("location:/hostay/admin/addroom.php?err=upload");
+                redirect("/hostay/admin/addroom.php?err=upload");
             }
         } else {
-            header("location:/hostay/admin/addroom.php?err=img");
+            redirect("/hostay/admin/addroom.php?err=img");
         }
     } else {
-        header("location:/hostay/admin/addroom.php?err=lack");
+        redirect("/hostay/admin/addroom.php?err=lack");
     }
 }
 
@@ -119,6 +120,7 @@ require_once("layouts/Toast.php");
                             class="needs-validation"
                             enctype="multipart/form-data"
                             novalidate>
+                            <?=csrf_field()?>
                             <div class="row mt-3 mb-3">
                                 <label for="" class="col-form-label fw-bold">Ảnh hiển thị</label>
                                 <label for="roomImage"
@@ -165,7 +167,7 @@ require_once("layouts/Toast.php");
                                         <?php
                                             $rtypes = $rtm->getRoomtypes(new RoomtypeObject, 1, 100);
                                             foreach($rtypes as $rtype) {
-                                                echo '<option value="'.$rtype->getRoomtype_id().'">'.$rtype->getRoomtype_name().'</option>';
+                                                echo '<option value="'.e($rtype->getRoomtype_id()).'">'.e($rtype->getRoomtype_name()).'</option>';
                                             }
                                         ?>
                                     </select>

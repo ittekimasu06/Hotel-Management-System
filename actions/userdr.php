@@ -1,13 +1,15 @@
 <?php
-session_start();
+require_once(__DIR__."/../libraries/Security.php");
+start_session();
+csrf_verify();
 if(!isset($_SESSION["user"])) {
-    header("location:/hostay/admin/login.php");
+    redirect("/hostay/admin/login.php");
 } else {
     if(!isset($_SESSION["user"]["permission"]) || $_SESSION["user"]["permission"] < 1) {
-        header("location:/hostay/admin/login.php?err=permis");
+        redirect("/hostay/admin/login.php?err=permis");
     } else {
         if(!isset($_GET["id"]) || $_GET["id"] <= 0 || !is_numeric($_GET["id"])) {
-            header("location:/hostay/admin/users.php?err=value");
+            redirect("/hostay/admin/users.php?err=value");
         } else {
             if($_SESSION["user"]["id"] != $_GET["id"]) {
                 require_once("../app/models/UserModel.php");
@@ -17,18 +19,18 @@ if(!isset($_SESSION["user"])) {
                     if($_SESSION["user"]["permission"] >= $user->getUser_permission()) {
                         $result = $um->delUser($user);
                         if($result) {
-                            header("location:/hostay/admin/users.php?suc=del");
+                            redirect("/hostay/admin/users.php?suc=del");
                         } else {
-                            header("location:/hostay/admin/users.php?err=del");
+                            redirect("/hostay/admin/users.php?err=del");
                         }
                     } else {
-                        header("location:/hostay/admin/users.php?err=permis");
+                        redirect("/hostay/admin/users.php?err=permis");
                     }
                 } else {
-                    header("location:/hostay/admin/users.php?err=noexist");
+                    redirect("/hostay/admin/users.php?err=noexist");
                 }
             } else {
-                header("location:/hostay/admin/users.php?err=notok");
+                redirect("/hostay/admin/users.php?err=notok");
             }
         }
     }
