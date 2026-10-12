@@ -1,0 +1,12 @@
+{
+  "name": "hostay",
+  "private": true,
+  "description": "Lệnh build/start cho môi trường deploy (Render). Khi phát triển, chạy riêng server/ và client/.",
+  "engines": {
+    "node": ">=22.12"
+  },
+  "scripts": {
+    "build": "npm ci --include=dev --prefix client && npm run build --prefix client && npm ci --include=dev --prefix server && npm run db:generate --prefix server && npm run build --prefix server",
+    "start": "npm start --prefix server"
+  }
+}

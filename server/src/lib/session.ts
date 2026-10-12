@@ -1,5 +1,6 @@
 import session from "express-session";
 import MySQLStoreFactory from "express-mysql-session";
+import mysql from "mysql2";
 import { config } from "../config.js";
 
 declare module "express-session" {
@@ -11,11 +12,18 @@ declare module "express-session" {
 const MySQLStore = MySQLStoreFactory(session);
 
 // Lưu session trong bảng `sessions` (tự tạo nếu chưa có) để không mất đăng nhập khi restart server
-export const sessionStore = new MySQLStore({
-  ...config.db,
-  createDatabaseTable: true,
-  clearExpired: true,
-});
+// Tự tạo pool để truyền được cấu hình SSL (thư viện lọc bỏ khóa "ssl" nếu đưa qua options)
+const pool = mysql.createPool({ ...config.db, connectionLimit: 5 });
+
+export const sessionStore = new MySQLStore(
+  {
+    createDatabaseTable: true,
+    clearExpired: true,
+    // Pool do mình tạo nên phải tự đóng khi store đóng
+    endConnectionOnClose: true,
+  },
+  pool,
+);
 
 export const sessionMiddleware = session({
   name: "hostay.sid",

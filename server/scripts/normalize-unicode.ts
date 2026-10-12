@@ -7,8 +7,9 @@
  *   npm run db:normalize            # xem trước, không ghi gì
  *   npm run db:normalize -- --apply # ghi thay đổi (nên sao lưu database trước)
  */
-import "dotenv/config";
 import mysql from "mysql2/promise";
+// Dùng chung cấu hình kết nối của server (đọc .env, hỗ trợ SSL qua DB_SSL_CA)
+import { config } from "../src/config.js";
 
 const TABLES: Record<string, { id: string; columns: string[] }> = {
   tbluser: { id: "user_id", columns: ["user_name", "user_fullname", "user_email", "user_phone"] },
@@ -20,13 +21,8 @@ const TABLES: Record<string, { id: string; columns: string[] }> = {
 };
 
 const apply = process.argv.includes("--apply");
-const url = new URL(process.env.DATABASE_URL!);
 const con = await mysql.createConnection({
-  host: url.hostname,
-  port: Number(url.port || 3306),
-  user: decodeURIComponent(url.username),
-  password: decodeURIComponent(url.password),
-  database: url.pathname.slice(1),
+  ...config.db,
   charset: "utf8mb4",
 });
 

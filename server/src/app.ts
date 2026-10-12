@@ -1,3 +1,5 @@
+import fs from "node:fs";
+import path from "node:path";
 import express, { type ErrorRequestHandler } from "express";
 import helmet from "helmet";
 import multer from "multer";
@@ -22,7 +24,18 @@ if (config.isProduction) {
   // Chạy sau reverse proxy (nginx, Render...) để cookie secure và rate limit nhận đúng IP
   app.set("trust proxy", 1);
 }
-app.use(helmet());
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        // Bản đồ Google nhúng trong trang chi tiết phòng
+        "frame-src": ["'self'", "https://maps.google.com", "https://www.google.com"],
+        // blob: cho ảnh xem trước khi chọn file ở form phòng
+        "img-src": ["'self'", "data:", "blob:"],
+      },
+    },
+  }),
+);
 
 // Ảnh phòng do admin upload
 app.use("/uploads", express.static(config.uploadDir, { fallthrough: false }));
@@ -50,6 +63,24 @@ api.use((_req, _res, next) => {
 });
 
 app.use("/api", api);
+
+// Bản build React: phục vụ file tĩnh; mọi đường dẫn còn lại trả index.html để React Router xử lý
+const indexHtml = path.join(config.clientDist, "index.html");
+if (fs.existsSync(indexHtml)) {
+  app.use(
+    express.static(config.clientDist, {
+      index: false,
+      setHeaders(res, file) {
+        // File trong assets/ có mã hash trong tên, cache lâu dài an toàn
+        if (file.includes(`${path.sep}assets${path.sep}`)) res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
+      },
+    }),
+  );
+  app.get("/{*splat}", (_req, res) => {
+    res.setHeader("Cache-Control", "no-cache");
+    res.sendFile(indexHtml);
+  });
+}
 
 const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
   if (err instanceof ZodError) {

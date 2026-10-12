@@ -1,0 +1,4 @@
+{
+  // Dự án dùng Prisma 6 (server/package.json); extension Prisma mặc định kiểm tra theo Prisma 7
+  "prisma.pinToPrisma6": true
+}
