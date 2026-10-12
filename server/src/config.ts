@@ -28,7 +28,10 @@ const env = z
 function loadCa(value: string): string | null {
   if (!value) return null;
   if (value.includes("-----BEGIN")) return value.replace(/\\n/g, "\n");
-  return fs.readFileSync(path.resolve(process.cwd(), value), "utf8");
+  const file = path.resolve(process.cwd(), value);
+  if (!fs.existsSync(file)) throw new Error(`DB_SSL_CA: không tìm thấy file "${file}"`);
+  if (fs.statSync(file).isDirectory()) throw new Error(`DB_SSL_CA: "${file}" là thư mục, cần đường dẫn tới file CA (vd: ...\\ca.pem)`);
+  return fs.readFileSync(file, "utf8");
 }
 
 const ca = loadCa(env.DB_SSL_CA);
